@@ -1,0 +1,19 @@
+{
+    "decomposition_set": [
+        1,
+        2,
+        3,
+        4,
+        5
+    ],
+    "diapason_size": 1000000,
+    "mode": "automatic|manual|whole",
+    "multiple_diapasons": true,
+    "number_of_assumptions": 1000,
+    "number_of_diapasons": 1,
+    "starting_point": [
+        1,
+        0,
+        2
+    ]
+}
