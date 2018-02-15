@@ -17,8 +17,40 @@ gmake rs
 cp minisat_static <install-dir>/minisat
 
 ================================================================================
-EXAMPLES:
 
-Run minisat with same heuristics as version 2.0:
+The Sampler is based on the COMiniSatPS (https://cs.nyu.edu/~chanseok/cominisatps/index.html),
+which in turn is based on Minisat 2.2.(http://minisat.se/). The choice is mainly motivated by
+the fact that it is easier to build out of the box (from our point of view).
 
-> minisat <cnf-file> -no-luby -rinc=1.5 -phase-saving=0 -rnd-freq=0.02
+The role of sampler is to generate random samples. In particular, it should filter assumptions 
+in such a way that only nontrivial assumptions are given to an employed incremental solver.
+
+Sampler takes as an input a .json file which specifiec the desired parameters of a random 
+sample. The sampler is NOT designed to be used manualy, since it is launched by alias_estimate and 
+alias_solve scripts.
+
+Nevertheless, to launch it one can use the following command:
+./sampler -sampling json_file cnf_name out_name
+
+cnf_name is the considered CNF.
+out_name is the name of output file(s).
+json_file is a file specifying the backdoor variables and random sample settings.
+An example of json_file is:
+
+{
+  "decomposition_set": [2, 6, 9, 10, 12, 15, 16, 21, 40, 42, 45, 66, 67, 69, 71], 
+  "mode": "manual_whole", 
+  "diapason_start": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  "diapason_end": [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0], 
+  "block_size": 50
+}
+
+"decomposition_set" contains a list of backdoor variables.
+"mode" specifies one of several modes used by sampler. They are invoked depending on the size of 
+random sample and the number of processes employed. Also, the alias_solve and alias_estimate 
+obviously employ different modes. For example, "manual_whole" means that the sampler should
+output the list of valid assumptions starting from the "diapason_start" and up to (excluding)
+"diapason_end".
+"block_size" specifies how many assumptions should be put into a single file.
+
+
