@@ -1,0 +1,9 @@
+asg.zip consits of instances, in which a relatively small SUPBS is known. In particular, we considered SAT encodings of cryptanalysis of the alternating step generator (ASG) and two its modifications, MASG and MASG0. SAT instances for these problems were taken from the paper 
+Zaikin, O., Kochemazov, S.: An improved SAT-based guess-and-determine attack on the
+alternating step generator. In: ISC 2017. LNCS, vol. 10599, pp. 21–38 (2017).
+We took 10 intances for each of ASG-72, ASG-96, MASG-72 and MASG0-72 (40 in total). Naturally, for ASG-72, MASG-72 and MASG0-72 there is a SUPBS of 72 variables and for ASG-96 one of 96 variables (corresponding to secret key).
+
+crafted.zip contains 24 hard small crafted SAT instances. To construct it we first took all crafted instances with less than 500 variables from SAT Competitions 2007, 2009, 2014, 2016, 2017 and also challenge-105.cnf described in the paper 
+Van Gelder, A., Spence, I.: Zero-one designs produce small hard SAT instances. In: SAT
+2010. LNCS, vol. 6175, pp. 388–397 (2010).
+Then we launched the Syrup, Plingeling and PainleSS multithreaded SAT solvers (the versions from SAT Competition 2017) on each of these instances with the time limit of 5000 seconds on a computer equipped with two 18-core Intel Xeon E5-2695 CPUs and 128 Gb of RAM. It turned out that 24 instances were not solved in time by any solver: 7 from SAT Competition 2007, 10 from SAT Competition 2009, 6 from SAT Competition 2014 and also challenge-105.cnf.
