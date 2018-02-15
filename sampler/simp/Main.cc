@@ -88,8 +88,6 @@ int main(int argc, char** argv)
         StringOption dimacs ("MAIN", "dimacs", "If given, stop after preprocessing and write the result to this file.");
         IntOption    cpu_lim("MAIN", "cpu-lim","Limit on CPU time allowed in seconds.\n", INT32_MAX, IntRange(0, INT32_MAX));
         IntOption    mem_lim("MAIN", "mem-lim","Limit on memory usage in megabytes.\n", INT32_MAX, IntRange(0, INT32_MAX));
-        BoolOption   drup   ("MAIN", "drup",   "Generate DRUP UNSAT proof.", false);
-        StringOption drup_file("MAIN", "drup-file", "DRUP UNSAT proof ouput file.", "");
 
         parseOptions(argc, argv, true);
         
@@ -98,16 +96,8 @@ int main(int argc, char** argv)
 
         if (!pre) S.eliminate(true);
 
-        S.parsing = true;
         S.verbosity = verb;
-        if (drup || strlen(drup_file)){
-            S.drup_file = strlen(drup_file) ? fopen(drup_file, "wb") : stdout;
-            if (S.drup_file == NULL){
-                S.drup_file = stdout;
-                printf("c Error opening %s for write.\n", (const char*) drup_file); }
-            printf("c DRUP proof generation: %s\n", S.drup_file == stdout ? "stdout" : drup_file);
-        }
-
+        
         solver = &S;
         // Use signal handlers that forcibly quit until the solver will be able to respond to
         // interrupts:
@@ -163,7 +153,6 @@ int main(int argc, char** argv)
         signal(SIGINT, SIGINT_interrupt);
         signal(SIGXCPU,SIGINT_interrupt);
 
-        S.parsing = false;
         S.eliminate(true);
         double simplified_time = cpuTime();
         if (S.verbosity > 0){
@@ -178,14 +167,6 @@ int main(int argc, char** argv)
                 printStats(S);
                 printf("\n"); }
             printf("s UNSATISFIABLE\n");
-            if (S.drup_file){
-#ifdef BIN_DRUP
-                fputc('a', S.drup_file); fputc(0, S.drup_file);
-#else
-                fprintf(S.drup_file, "0\n");
-#endif
-            }
-            if (S.drup_file && S.drup_file != stdout) fclose(S.drup_file);
             exit(20);
         }
 
@@ -213,15 +194,6 @@ int main(int argc, char** argv)
             printf(" 0\n");
         }
 
-        if (S.drup_file && ret == l_False){
-#ifdef BIN_DRUP
-            fputc('a', S.drup_file); fputc(0, S.drup_file);
-#else
-            fprintf(S.drup_file, "0\n");
-#endif
-        }
-        if (S.drup_file && S.drup_file != stdout) fclose(S.drup_file);
-
         if (res != NULL){
             if (ret == l_True){
                 fprintf(res, "SAT\n");
@@ -243,7 +215,6 @@ int main(int argc, char** argv)
 #endif
     } catch (OutOfMemoryException&){
         printf("c ===============================================================================\n");
-        printf("c Out of memory\n");
         printf("s UNKNOWN\n");
         exit(0);
     }
