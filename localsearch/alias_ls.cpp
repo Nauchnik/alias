@@ -1,6 +1,8 @@
 /* Author: Oleg Zaikin, ISDCT SB RAS, Irkutsk */
 
-#include "igbfs.h"
+#include <iostream>
+
+#include "base_ls.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,7 +11,9 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
-	igbfs igbfs_obj;
+	base_local_search base_ls;
+
+	/*
 	string cnf_name = "";
 	string solver_name = "";
 	string estimation_script_name = "";
@@ -96,7 +100,7 @@ int main(int argc, char *argv[])
 	if (!isTimeExceeded())
 		solveInstance();
 
-	cout << "*** final total time " << timeFromStart() << endl;
+	cout << "*** final total time " << timeFromStart() << endl;*/
 	
 	return 0;
 }

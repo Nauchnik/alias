@@ -1,10 +1,7 @@
 /* Author: Oleg Zaikin, ISDCT SB RAS, Irkutsk */
 
 #include "igbfs.h"
-
-igbfs::igbfs() :
-graph_file_name ("alias_records")
-{}
+/*
 
 void igbfs::backJump() {
 	cout << "* backjumping" << endl;
@@ -19,12 +16,20 @@ void igbfs::backJump() {
 	cout << "* is_jump_mode " << is_jump_mode << endl;
 }
 
-void igbfs::getGraphFileName()
+point igbfs::permutateRecordPoint()
 {
-	size_t found = cnf_name.find_last_of("/");
-	if (found != string::npos) // if full path, get its base part
-	local_s_d.graph_file_name = cnf_name.substr(0, found) + "/" + local_s_d.graph_file_name;
-	cout << "graph_file_name " << local_s_d.graph_file_name << endl;
+	cout << "* permutate record point" << endl;
+	point mod_point = global_record_point;
+	unsigned changed_vals = 0;
+	unsigned vars_to_change = mod_point.weight() / 3;
+	cout << "vars_to_change " << vars_to_change << endl;
+	for (unsigned i = 0; i < vars_to_change; i++) {
+		unsigned rand_ind = rand() % mod_point.value.size();
+		mod_point.value[i] = (mod_point.value[i] == true) ? false : true;
+	}
+	cout << "modified point with weight " << mod_point.weight() << " : " << endl;
+	printPoint(mod_point);
+	return mod_point;
 }
 
 // Parse a dimacs CNF formula from a given file and
@@ -148,10 +153,6 @@ void GBFS(const point start_point)
 		for (unsigned j = 0; j < local_s_d.local_record_point.value.size(); j++)
 			changing_vars.push_back(j);
 		random_shuffle(changing_vars.begin(), changing_vars.end());
-		/*cout << "changing_vars : " << endl;
-		for (auto x : changing_vars)
-			cout << x << " ";
-		cout << endl;*/
 		int changing_vars_count = changing_vars.size();
 		//cout << "new start point " << endl;
 		for (int i = -1; i < changing_vars_count; i++) { // i == -1 is required to check a point itself
@@ -368,3 +369,5 @@ bool solveInstance()
 
 	return true;
 }
+
+*/

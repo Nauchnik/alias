@@ -116,10 +116,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\alias_ls.cpp" />
+    <ClCompile Include="..\base_ls.cpp" />
     <ClCompile Include="..\igbfs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\base_ls.h" />
     <ClInclude Include="..\igbfs.h" />
+    <ClInclude Include="..\point.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
