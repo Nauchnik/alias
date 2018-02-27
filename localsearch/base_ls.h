@@ -17,6 +17,9 @@
 const double DEFAULT_TIME_LIMIT = 3600;
 const unsigned MAX_SOLVING_VARS = 32;
 
+#define SOLVE 1
+#define ESTIMATE 2
+
 using namespace std;
 
 class base_local_search
@@ -32,9 +35,8 @@ public:
 	string pcs_name;
 	string graph_file_name;
 	fstream graph_file;
-	string estimation_script_name;
+	string alias_script_name;
 	string solver_name;
-	string solver_script_name;
 	int cpu_cores;
 	double time_limit;
 	chrono::high_resolution_clock::time_point start_t;
@@ -50,7 +52,7 @@ public:
 	vector<unsigned> readVarsFromPcs(string pcs_name);
 	bool isEstTooLong();
 	void writeToGraphFile(const string str);
-	string getScriptCommand(const string script_name, const point cur_point);
+	string getScriptCommand(const int mode, const point cur_point);
 	void setGraphFileName();
 	bool solveInstance();
 	void reportFinalEstimation();
