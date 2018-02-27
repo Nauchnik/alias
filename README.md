@@ -4,7 +4,7 @@ Directories:
 
 estimation - script which calculates runtime estimation for a given backdoor 
 
-gbfs - implementation of greedy best first search (GBFS) which traverse a search space in order to find a backdoor with low runtime estimation 
+localsearch - implementation of greedy best first search (GBFS) which traverse a search space in order to find a backdoor with low runtime estimation 
 
 genipainterval - program that, given a CNF formula and a set of assumptions, processes the latter using some incremental way. To build it one needs the IPASIR API.
 
