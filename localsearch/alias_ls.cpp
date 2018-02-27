@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 	igbfs_obj.solver_script_name = solver_script_name;
 	igbfs_obj.time_limit = time_limit;
 	
+	igbfs_obj.init();
 	igbfs_obj.iteratedGBFS();
-	
 	igbfs_obj.solveInstance();
 
 	cout << "*** final total time " << igbfs_obj.timeFromStart() << endl;

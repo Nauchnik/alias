@@ -26,7 +26,6 @@ public:
 	point permutateRecordPoint();
 	void iteratedGBFS(point start_point);
 	void GBFS(const point start_point);
-	void calculateEstimation(point &cur_point);
 	void updateLocalRecord(point cur_point);
 	point jumpPoint(point cur_point);
 	void iteratedGBFS();

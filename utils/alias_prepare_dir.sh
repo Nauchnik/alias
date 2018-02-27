@@ -13,9 +13,9 @@ folder="tmp_"$solver_base"_"$cnf_base;
 echo "folder $folder"
 rm -rf $folder
 mkdir $folder
-cp ./alias/igbfs ./$folder
+cp ./alias/alias_ls ./$folder
 cp ./alias/runtime_estimation.py ./$folder
-cp ./alias/sampler_static ./$folder
+cp ./alias/minisat_static ./$folder
 cp ./alias/settings.ini ./$folder
 cp ./alias/alias_solve2.py ./$folder
 cp $solver ./$folder

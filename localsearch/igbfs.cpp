@@ -144,24 +144,6 @@ void igbfs::GBFS(const point start_point)
 	cout << "GBFS() end" << endl << endl;
 }
 
-void igbfs::calculateEstimation(point &cur_point)
-{
-	string command_str = getScriptCommand(estimation_script_name, cur_point);
-
-	//cout << "command_str : " << command_str << endl;
-	string out_str = getCmdOutput(command_str.c_str());
-	string bef_str = "SUCCESS, 0, 0, ";
-	size_t pos1 = out_str.find(bef_str);
-	if (pos1 != string::npos) {
-		size_t pos2 = pos1 + bef_str.size();
-		out_str = out_str.substr(pos2, out_str.size() - pos2);
-		//cout << "output : " << out_str << endl;
-		stringstream sstream;
-		sstream << out_str;
-		sstream >> cur_point.estimation;
-	}
-}
-
 void igbfs::updateLocalRecord(point cur_point)
 {
 	local_record_point = cur_point;

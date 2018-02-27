@@ -2,7 +2,7 @@
 #include <sstream>
 
 base_local_search::base_local_search() :
-	graph_file_name("alias_records"),
+	graph_file_name(""),
 	cnf_name(""),
 	cpu_cores(1),
 	time_limit(DEFAULT_TIME_LIMIT),
@@ -27,7 +27,6 @@ void base_local_search::loadVars()
 
 	cout << "search space variables number " << vars.size() << endl;
 }
-
 
 // Parse a dimacs CNF formula from a given file and
 // save its clauses into a given vector.
@@ -103,11 +102,22 @@ vector<unsigned> base_local_search::readVarsFromPcs(string pcs_name)
 	return vars_vec;
 }
 
-void base_local_search::getGraphFileName()
+void base_local_search::setGraphFileName()
 {
-	size_t found = cnf_name.find_last_of("/");
-	if (found != string::npos) // if full path, get its base part
-		graph_file_name = cnf_name.substr(0, found) + "/" + graph_file_name;
+	string cnf_name_short, solver_name_short;
+	size_t found1 = cnf_name.find_last_of("/");
+	size_t found2 = cnf_name.find_last_of(".");
+	if (found1 != string::npos)
+		cnf_name_short = cnf_name.substr(found1+1, found2-found1-1);
+	else
+		cnf_name_short = cnf_name;
+	found1 = solver_name.find_last_of("/");
+	if (found1 != string::npos)
+		solver_name_short = solver_name.substr(found1 + 1, solver_name.size() - found1 - 1);
+	else
+		solver_name_short = solver_name;
+	cout << "cnf_name_short " << cnf_name_short << endl;
+	graph_file_name = "alias_" + solver_name_short + "_" + cnf_name_short;
 	cout << "graph_file_name " << graph_file_name << endl;
 }
 
@@ -227,4 +237,28 @@ void base_local_search::reportFinalEstimation()
 	cout << "skipped points : " << skipped_points_count << endl;
 	cout << "checked points : " << checked_points.size() << endl;
 	cout << "interrupted points : " << interrupted_points_count << endl;
+}
+
+void base_local_search::init()
+{
+	loadVars();
+	setGraphFileName();
+}
+
+void base_local_search::calculateEstimation(point &cur_point)
+{
+	string command_str = getScriptCommand(estimation_script_name, cur_point);
+
+	//cout << "command_str : " << command_str << endl;
+	string out_str = getCmdOutput(command_str.c_str());
+	string bef_str = "SUCCESS, 0, 0, ";
+	size_t pos1 = out_str.find(bef_str);
+	if (pos1 != string::npos) {
+		size_t pos2 = pos1 + bef_str.size();
+		out_str = out_str.substr(pos2, out_str.size() - pos2);
+		//cout << "output : " << out_str << endl;
+		stringstream sstream;
+		sstream << out_str;
+		sstream >> cur_point.estimation;
+	}
 }

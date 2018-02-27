@@ -44,15 +44,17 @@ public:
 	double timeFromStart();
 	bool isTimeExceeded();
 
+	void init();
 	void loadVars();
 	vector<unsigned> getAllCnfVars(const string filename);
 	vector<unsigned> readVarsFromPcs(string pcs_name);
 	bool isEstTooLong();
 	void writeToGraphFile(const string str);
 	string getScriptCommand(const string script_name, const point cur_point);
-	void getGraphFileName();
+	void setGraphFileName();
 	bool solveInstance();
 	void reportFinalEstimation();
+	void calculateEstimation(point &cur_point);
 	
 	inline bool isChecked(const point cur_point) {
 		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());
