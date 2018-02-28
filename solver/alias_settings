@@ -1,0 +1,29 @@
+{
+    "general_settings": {
+        "solver": "genipainterval-glucose4",
+        "solver_settings": {
+            "satisfiying_assignment_string": "formula is satisfiable",
+            "solver_arguments": {}
+        },
+        "sampler_filename": "sampler_static",
+        "cnf_filename": "",
+        "working_directory": "",
+        "use_all_cores": true,
+        "number_of_processes": 36,
+        "block_size": 100,
+        "maximum_number_of_files_total": 3600
+    },
+    "sampling_settings": {
+        "use_sampler": true,
+        "number_of_diapasons": 100,
+        "diapason_size": 10000,
+        "number_of_assumptions": 100,
+        "time_limit_per_task": 100,
+        "multiple_diapasons": true,
+        "estimation_output_string": "Result for SMAC: SUCCESS, 0, 0, {}, 0"
+    },
+    "solving_settings": {
+        "time_limit_on_solving": 3600,
+        "solving_output_string": "Solved! Cpu time: {} Wall time: {}"
+    }
+}

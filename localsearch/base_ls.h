@@ -31,6 +31,7 @@ public:
 	unsigned skipped_points_count;
 	unsigned interrupted_points_count;
 	point global_record_point;
+	point local_record_point;
 	string cnf_name;
 	string pcs_name;
 	string graph_file_name;

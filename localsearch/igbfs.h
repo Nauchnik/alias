@@ -8,7 +8,7 @@
 using namespace std;
 
 const unsigned INITIAL_JUMP_STEP = 10;
-const unsigned MIN_VARS_JUMP_FROM = 40;
+const unsigned MIN_VARS_JUMP_FROM = 30;
 const unsigned MAX_ITERATIONS = 2;
 
 class igbfs : public base_local_search
@@ -18,7 +18,6 @@ public:
 
 	unsigned vars_decr_times;
 	unsigned jump_step;
-	point local_record_point;
 	point before_jump_point;
 	bool is_jump_mode;
 

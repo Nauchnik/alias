@@ -226,7 +226,7 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 		command_str += " -e";
 	command_str += " -cnf " + cnf_name + " -solver " + solver_name;
 	
-	sstream << global_record_point.estimation;
+	sstream << local_record_point.estimation;
 	command_str += " -bkv " + sstream.str();
 	sstream.str(""); sstream.clear();
 
