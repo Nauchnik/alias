@@ -2,8 +2,6 @@ modulAr tooL for fInding bAckdoors for Sat (ALIAS) - a customizable scalable too
 
 Directories:
 
-estimation - script which calculates runtime estimation for a given backdoor 
-
 localsearch - implementation of greedy best first search (GBFS) which traverse a search space in order to find a backdoor with low runtime estimation 
 
 genipainterval - program that, given a CNF formula and a set of assumptions, processes the latter using some incremental way. To build it one needs the IPASIR API.
@@ -12,7 +10,7 @@ sampler - a minisat-based program which prepares data for calculating the runtim
 
 smac - script for launching ALIAS by SMAC
 
-solver - script for solving a SAT instance using a given backdoor 
+solver - script which can calculates runtime estimation for a given backdoor and also solve a SAT instance using it
 
 utils - some additional scripts
 
