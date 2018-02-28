@@ -7,7 +7,8 @@ base_local_search::base_local_search() :
 	cpu_cores(1),
 	time_limit(DEFAULT_TIME_LIMIT),
 	skipped_points_count(0),
-	interrupted_points_count(0)
+	interrupted_points_count(0),
+	wall_time_solving(0)
 {
 	start_t = chrono::high_resolution_clock::now();
 	srand(time(NULL));
@@ -192,6 +193,14 @@ bool base_local_search::solveInstance()
 	if (isTimeExceeded())
 		return false;
 
+	wall_time_solving = time_limit - timeFromStart();
+	cout << "wall_time_solving " << wall_time_solving << endl;
+	
+	if (wall_time_solving > global_record_point.estimation / 10) {
+		cout << "*** stop, wall_time_solving > estimation / 10" << endl;
+		return false;
+	}
+	
 	if (global_record_point.weight() > MAX_SOLVING_VARS) {
 		cout << "*** stop, record point weight " << global_record_point.weight() << " > " << MAX_SOLVING_VARS << endl;
 		return false;
@@ -212,13 +221,7 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 	stringstream sstream;
 	string command_str = "/share/apps/python/3.6.4/bin/python3.6 " + alias_script_name;
 	if (mode == SOLVE) {
-		double solving_wall_time = time_limit - timeFromStart();
-		cout << "solving_wall_time " << solving_wall_time << endl;
-		if (solving_wall_time < 0) {
-			cout << "solving_wall_time less than 0" << endl;
-			return "";
-		}
-		sstream << solving_wall_time;
+		sstream << wall_time_solving;
 		command_str += " -s -wtlimitsolve " + sstream.str();
 		sstream.str(""); sstream.clear();
 	}

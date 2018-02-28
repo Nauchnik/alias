@@ -40,6 +40,7 @@ public:
 	string solver_name;
 	int cpu_cores;
 	double time_limit;
+	double wall_time_solving;
 	chrono::high_resolution_clock::time_point start_t;
 
 	int getCpuCores();
