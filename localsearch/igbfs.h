@@ -14,13 +14,6 @@ const unsigned MAX_ITERATIONS = 2;
 class igbfs : public base_local_search
 {
 public:
-	igbfs();
-
-	unsigned vars_decr_times;
-	unsigned jump_step;
-	point before_jump_point;
-	bool is_jump_mode;
-
 	void backJump();
 	point permutateRecordPoint();
 	void iteratedGBFS(point start_point);

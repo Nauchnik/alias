@@ -41,6 +41,10 @@ public:
 	int cpu_cores;
 	double time_limit;
 	double wall_time_solving;
+	unsigned jump_step;
+	point before_jump_point;
+	bool is_jump_mode;
+	unsigned vars_decr_times;
 	chrono::high_resolution_clock::time_point start_t;
 
 	int getCpuCores();
@@ -54,11 +58,11 @@ public:
 	vector<unsigned> readVarsFromPcs(string pcs_name);
 	bool isEstTooLong();
 	void writeToGraphFile(const string str);
-	string getScriptCommand(const int mode, const point cur_point);
 	void setGraphFileName();
 	bool solveInstance();
 	void reportFinalEstimation();
 	void calculateEstimation(point &cur_point);
+	string getScriptCommand(const int mode, const point cur_point);
 	
 	inline bool isChecked(const point cur_point) {
 		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());

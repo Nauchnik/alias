@@ -4,10 +4,6 @@
 #include <sstream>
 #include <algorithm>
 
-igbfs::igbfs() :
-	is_jump_mode(true)
-{}
-
 void igbfs::backJump() {
 	cout << "* backjumping" << endl;
 	local_record_point.estimation = 1e+308;

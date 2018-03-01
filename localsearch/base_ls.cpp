@@ -8,7 +8,9 @@ base_local_search::base_local_search() :
 	time_limit(DEFAULT_TIME_LIMIT),
 	skipped_points_count(0),
 	interrupted_points_count(0),
-	wall_time_solving(0)
+	wall_time_solving(0),
+	is_jump_mode(true),
+	vars_decr_times(0)
 {
 	start_t = chrono::high_resolution_clock::now();
 	srand(time(NULL));
@@ -186,62 +188,6 @@ bool base_local_search::isEstTooLong() // for simple instances
 	return false;
 }
 
-bool base_local_search::solveInstance()
-{
-	cout << "solve an instance using record point" << endl;
-
-	if (isTimeExceeded())
-		return false;
-
-	wall_time_solving = time_limit - timeFromStart();
-	cout << "wall_time_solving " << wall_time_solving << endl;
-	
-	if (wall_time_solving > global_record_point.estimation / 10) {
-		cout << "*** stop, wall_time_solving > estimation / 10" << endl;
-		return false;
-	}
-	
-	if (global_record_point.weight() > MAX_SOLVING_VARS) {
-		cout << "*** stop, record point weight " << global_record_point.weight() << " > " << MAX_SOLVING_VARS << endl;
-		return false;
-	}
-	
-	string command_str = getScriptCommand(SOLVE, global_record_point);
-
-	cout << "command_str : " << command_str << endl;
-	string out_str = getCmdOutput(command_str.c_str());
-	cout << out_str << endl;
-	cout << "solving done" << endl;
-
-	return true;
-}
-
-string base_local_search::getScriptCommand(const int mode, const point cur_point)
-{
-	stringstream sstream;
-	string command_str = "/share/apps/python/3.6.4/bin/python3.6 " + alias_script_name;
-	if (mode == SOLVE) {
-		sstream << wall_time_solving;
-		command_str += " -s -wtlimitsolve " + sstream.str();
-		sstream.str(""); sstream.clear();
-	}
-	else
-		command_str += " -e";
-	command_str += " -cnf " + cnf_name + " -solver " + solver_name;
-	
-	sstream << local_record_point.estimation;
-	command_str += " -bkv " + sstream.str();
-	sstream.str(""); sstream.clear();
-
-	for (unsigned i = 0; i < vars.size(); i++) {
-		sstream << vars[i];
-		command_str += " -v" + sstream.str() + " '" + (cur_point.value[i] == true ? '1' : '0') + "'";
-		sstream.str(""); sstream.clear();
-	}
-
-	return command_str;
-}
-
 void base_local_search::reportFinalEstimation()
 {
 	cout << "final point weight : " << global_record_point.weight() << endl;
@@ -264,7 +210,7 @@ void base_local_search::init()
 void base_local_search::calculateEstimation(point &cur_point)
 {
 	string command_str = getScriptCommand(ESTIMATE, cur_point);
-	cout << "command_str " << command_str << endl;
+	//cout << "command_str " << command_str << endl;
 	
 	//cout << "command_str : " << command_str << endl;
 	string out_str = getCmdOutput(command_str.c_str());
@@ -278,4 +224,62 @@ void base_local_search::calculateEstimation(point &cur_point)
 		sstream << out_str;
 		sstream >> cur_point.estimation;
 	}
+}
+
+bool base_local_search::solveInstance()
+{
+	cout << "solve an instance using record point" << endl;
+
+	if (isTimeExceeded())
+		return false;
+
+	wall_time_solving = time_limit - timeFromStart();
+	cout << "wall_time_solving " << wall_time_solving << endl;
+
+	if (wall_time_solving > global_record_point.estimation / 10) {
+		cout << "*** stop, wall_time_solving > estimation / 10" << endl;
+		return false;
+	}
+
+	if (global_record_point.weight() > MAX_SOLVING_VARS) {
+		cout << "*** stop, record point weight " << global_record_point.weight() << " > " << MAX_SOLVING_VARS << endl;
+		return false;
+	}
+
+	string command_str = getScriptCommand(SOLVE, global_record_point);
+
+	cout << "command_str : " << command_str << endl;
+	string out_str = getCmdOutput(command_str.c_str());
+	cout << out_str << endl;
+	cout << "solving done" << endl;
+
+	return true;
+}
+
+string base_local_search::getScriptCommand(const int mode, const point cur_point)
+{
+	stringstream sstream;
+	string command_str = "/share/apps/python/3.6.4/bin/python3.6 " + alias_script_name;
+	if (mode == SOLVE) {
+		sstream << wall_time_solving;
+		command_str += " -s -wtlimitsolve " + sstream.str();
+		sstream.str(""); sstream.clear();
+	}
+	else
+		command_str += " -e";
+	command_str += " -cnf " + cnf_name + " -solver " + solver_name;
+
+	if (!is_jump_mode) {
+		sstream << local_record_point.estimation * 1.1;
+		command_str += " -bkv " + sstream.str();
+		sstream.str(""); sstream.clear();
+	}
+
+	for (unsigned i = 0; i < vars.size(); i++) {
+		sstream << vars[i];
+		command_str += " -v" + sstream.str() + " '" + (cur_point.value[i] == true ? '1' : '0') + "'";
+		sstream.str(""); sstream.clear();
+	}
+
+	return command_str;
 }
