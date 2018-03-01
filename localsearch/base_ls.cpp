@@ -235,9 +235,9 @@ bool base_local_search::solveInstance()
 
 	wall_time_solving = time_limit - timeFromStart();
 	cout << "wall_time_solving " << wall_time_solving << endl;
-
-	if (wall_time_solving < global_record_point.estimation * 10) {
-		cout << "*** stop, wall_time_solving < estimation * 10" << endl;
+	
+	if (wall_time_solving < (global_record_point.estimation / cpu_cores) / 10) {
+		cout << "*** stop, wall_time_solving < (global_record_point.estimation / cpu_cores) / 10)" << endl;
 		return false;
 	}
 
