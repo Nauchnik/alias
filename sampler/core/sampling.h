@@ -108,25 +108,27 @@ static void print_assumptions_to_file(std::vector<std::vector<std::vector<int>>>
 }
 
 static void dump_assumptions_to_file(std::vector<std::vector<int>> assumptions, std::string output_file){
-	int max_size = 10000;
-	std::stringstream p;
-	std::ofstream out;
-	out.open(output_file);
-	int d = 0;
-	for (size_t j = 0; j < assumptions.size(); j++) {
-		for (size_t k = 0; k <assumptions[j].size(); k++) {
-			p << assumptions[j][k] << " ";
-			d++;
+	if (assumptions.size()!=0){
+		int max_size = 10000;
+		std::stringstream p;
+		std::ofstream out;
+		out.open(output_file);
+		int d = 0;
+		for (size_t j = 0; j < assumptions.size(); j++) {
+			for (size_t k = 0; k <assumptions[j].size(); k++) {
+				p << assumptions[j][k] << " ";
+				d++;
+			}
+			p << "0\n";
+			if (d > max_size) {
+				out << p.rdbuf();
+				p.clear();
+				d = 0;
+			}
 		}
-		p << "0\n";
-		if (d > max_size) {
-			out << p.rdbuf();
-			p.clear();
-			d = 0;
-		}
+		out << p.rdbuf();
+		out.close();	
 	}
-	out << p.rdbuf();
-	out.close();	
 }
 
 
@@ -462,7 +464,7 @@ bool  Solver::gen_all_valid_assumptions_rc2(std::vector<int> d_set, uint64_t& to
 							
 			ok = S.gen_diapason_whole(decomposition_set, diapason_start, diapason_end, block_size, current_count, all_assumptions);
 			
-			if (diapason_start == diapason_end){
+			if (diapason_start >= diapason_end){
 				ok = false;			
 			}
 			std::string tmp_fn = output_file + std::to_string(file_cnt);
