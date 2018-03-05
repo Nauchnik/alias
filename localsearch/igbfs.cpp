@@ -165,8 +165,9 @@ void igbfs::updateLocalRecord(point cur_point)
 			}
 		}
 		if (!is_jump_mode)
-			for (auto x : global_record_point.value)
-				vars_records[x - 1]++;
+			for (unsigned j = 0; j < global_record_point.value.size(); j++)
+				if (global_record_point.value[j])
+					vars_records[j]++;
 		cout << "* vars_records : ";
 		for (auto x : vars_records)
 			cout << x << " ";
