@@ -46,6 +46,8 @@ public:
 	bool is_jump_mode;
 	unsigned vars_decr_times;
 	chrono::high_resolution_clock::time_point start_t;
+	int verbosity;
+	vector<unsigned> vars_records;
 
 	int getCpuCores();
 	string getCmdOutput(const char* cmd);

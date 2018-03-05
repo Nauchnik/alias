@@ -164,6 +164,13 @@ void igbfs::updateLocalRecord(point cur_point)
 				cout << "** is_jump_mode " << is_jump_mode << endl;
 			}
 		}
+		if (!is_jump_mode)
+			for (auto x : global_record_point.value)
+				vars_records[x - 1]++;
+		cout << "* vars_records : ";
+		for (auto x : vars_records)
+			cout << x << " ";
+		cout << endl;
 	}
 	else {
 		cout << "* new local_record_estimation " << local_record_point.estimation <<

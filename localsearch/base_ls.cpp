@@ -4,13 +4,17 @@
 base_local_search::base_local_search() :
 	graph_file_name(""),
 	cnf_name(""),
+	solver_name(""),
+	alias_script_name(""),
+	pcs_name(""),
 	cpu_cores(1),
 	time_limit(DEFAULT_TIME_LIMIT),
 	skipped_points_count(0),
 	interrupted_points_count(0),
 	wall_time_solving(0),
 	is_jump_mode(true),
-	vars_decr_times(0)
+	vars_decr_times(0),
+	verbosity(0)
 {
 	start_t = chrono::high_resolution_clock::now();
 	srand(time(NULL));
@@ -205,21 +209,33 @@ void base_local_search::init()
 {
 	loadVars();
 	setGraphFileName();
+
+	vars_records.resize(vars.size());
+	for (auto x : vars_records)
+		x = 0;
+	
+	cout << "cnf_name " << cnf_name << endl;
+	cout << "pcs_name " << pcs_name << endl;
+	cout << "solver_name " << solver_name << endl;
+	cout << "alias_script_name " << alias_script_name << endl;
+	cout << "wall_time_limit " << time_limit << endl;
+	cout << "verbosity " << verbosity << endl;
 }
 
 void base_local_search::calculateEstimation(point &cur_point)
 {
 	string command_str = getScriptCommand(ESTIMATE, cur_point);
-	//cout << "command_str " << command_str << endl;
+	if (verbosity > 0)
+		cout << "command_str " << command_str << endl;
 	
-	//cout << "command_str : " << command_str << endl;
 	string out_str = getCmdOutput(command_str.c_str());
 	string bef_str = "SUCCESS, 0, 0, ";
 	size_t pos1 = out_str.find(bef_str);
 	if (pos1 != string::npos) {
 		size_t pos2 = pos1 + bef_str.size();
 		out_str = out_str.substr(pos2, out_str.size() - pos2);
-		//cout << "output : " << out_str << endl;
+		if (verbosity > 0)
+			cout << "output : " << out_str << endl;
 		stringstream sstream;
 		sstream << out_str;
 		sstream >> cur_point.estimation;
