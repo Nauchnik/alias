@@ -634,7 +634,9 @@ def log_result(results, index, event1, event2, event3, n_of_points):
         if not event1.is_set() and not event2.is_set() and not event3.is_set():
             logging.debug("Workunit {} [{} assumptions total] done in time {} ({}/{}) ".format(str(index), str(retval[1]), str(retval), str(len(results)),str(settings["number_of_workunits"])))
             if len(results) % 10 == 0:
-                logging.debug("Elapsed time: {}".format(str(time.perf_counter() - settings["solving_started"])))
+                time_elapsed = time.perf_counter() - settings["solving_started"]
+                estimation = (time_elapsed / len(results)) * n_of_points
+                logging.debug("Elapsed time: {}. Estimated total time: {}.".format(str(time_elapsed),str(estimation)))
             print ('{} % done'.format(100*len(results)/n_of_points))
     return lr
     
