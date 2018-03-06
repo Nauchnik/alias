@@ -467,12 +467,14 @@ bool  Solver::gen_all_valid_assumptions_rc2(std::vector<int> d_set, uint64_t& to
 			if (diapason_start >= diapason_end){
 				ok = false;			
 			}
-			std::string tmp_fn = output_file + std::to_string(file_cnt);
+			if (all_assumptions.size()!=0) {
+				std::string tmp_fn = output_file + std::to_string(file_cnt);
 
-			dump_assumptions_to_file(all_assumptions, tmp_fn);
-			std::cout<<tmp_fn<<" "<<all_assumptions.size()<<"\n";	
-			all_assumptions.clear();
-			file_cnt++;
+				dump_assumptions_to_file(all_assumptions, tmp_fn);
+				std::cout<<tmp_fn<<" "<<all_assumptions.size()<<"\n";	
+				all_assumptions.clear();
+				file_cnt++;
+			}
 		}			
 	}
 

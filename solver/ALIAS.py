@@ -5,6 +5,8 @@ import uuid
 import sys
 import multiprocessing
 import time
+import logging 
+
 import re
 from shutil import copyfile
 
@@ -105,6 +107,8 @@ def parse_commandline():
                     settings["maxtlpertask"] = int(sys.argv[i+1])
                 if (sys.argv[i] == '-wtlimitsolve'):
                     settings["wtlimitsolve"] = float(sys.argv[i+1])
+                if (sys.argv[i] == '-workunits'):
+                    settings["number_of_workunits"] = int(sys.argv[i+1])
                 if (sys.argv[i] == '-bkv'):
                     settings["bkv"] = float(sys.argv[i+1])        
                 if sys.argv[i].startswith("-v"):                    
@@ -139,6 +143,9 @@ def parse_commandline():
 
     os.chdir(settings["wd"])
         
+    logging.basicConfig(filename="alias.log",level=logging.DEBUG, format = '%(asctime)s %(message)s',\
+    datefmt = '%d/%m/%Y %I:%M:%S %p')
+
     if (len(settings["decomposition_set"])==0):
         if os.path.isfile("./d_set") == True:
             with open ('./d_set') as d_set:
@@ -146,6 +153,7 @@ def parse_commandline():
                 settings["decomposition_set"] =  [int(u) for u in re.findall(r'\d+',data)]
         else:
             print("Decomposition set is not specified!")
+            #logging.info("Decomposition set not specified")
             sys.exit()    
     dset_size = 2**len(settings["decomposition_set"])
 
@@ -172,13 +180,22 @@ def parse_commandline():
 
     #print("maxnumblocksperprocess = {}".format(max_number_of_blocks_per_process))
 
-    if settings["mode"] == "estimate":
-        blocks_total = settings["numdiap"] * settings["numassumpts"] / settings["blocksize"]
-        settings["number_of_workunits"] = 1
+    if settings["number_of_workunits"] <= 0 :
+        if settings["mode"] == "estimate":
+            blocks_total = settings["numdiap"] * settings["numassumpts"] / settings["blocksize"]
+            settings["number_of_workunits"] = 1
 
-    if settings["mode"] == "solve":    
-        blocks_total = round(dset_size / settings["blocksize"]) + 1        
-        settings["number_of_workunits"] = round(blocks_total/max_number_of_blocks_per_process)
+        if settings["mode"] == "solve":    
+            blocks_total = round(dset_size / settings["blocksize"]) + 1        
+            settings["number_of_workunits"] = round(blocks_total/max_number_of_blocks_per_process)
+            
+            min_wu_number = round(blocks_total/max_number_of_blocks_per_process)
+            max_wu_number = blocks_total
+            
+            if 4*settings["numproc"] > min_wu_number and 4*settings["numproc"] < max_wu_number:            
+                settings["number_of_workunits"] = 4 * settings["numproc"]            
+            
+
 
     #print("blocks_total = {}".format(blocks_total))
 
@@ -326,21 +343,31 @@ def load_settings_from_file(filename_st):
 
 def print_state():
     if (settings["mode"] == "solve"):
-        print("ALIAS launched in solving mode")    
+        print("ALIAS launched in solving mode for cnf {}".format(settings["cnf"]))    
+        logging.info("ALIAS launched in solving mode for cnf {}".format(settings["cnf"]))
     else:
-        print("ALIAS launched in estimating mode")        
+        print("ALIAS launched in estimating mode for cnf {}".format(settings["cnf"]))        
+        logging.info("ALIAS launched in estimating mode for cnf {}".format(settings["cnf"]))        
     print("Starting the computations using {} processes.".format(settings["numproc"]))
     print("Backdoor: "+str(settings["decomposition_set"]))
+    logging.info("Starting the computations using {} processes.".format(settings["numproc"]))
+    logging.info("Backdoor: "+str(settings["decomposition_set"]))
     if (settings["mode"]=="estimate"):
         print("Processing {} diapasons of {} assumptions divided into blocks of size {}".format(\
         settings["numdiap"], settings["numassumpts"],settings["blocksize"]))
+        logging.info("Processing {} diapasons of {} assumptions divided into blocks of size {}".format(\
+        settings["numdiap"], settings["numassumpts"],settings["blocksize"]))
 
-    if (settings["mode"]=="solve"):
+    if (settings["mode"]=="solve"):        
         print("{} assumptions are split into {} workunits divided into blocks of size {}"\
+        .format(str(2**len(settings["decomposition_set"])), settings["number_of_workunits"],\
+        settings["blocksize"]))
+        logging.info("{} assumptions are split into {} workunits divided into blocks of size {}"\
         .format(str(2**len(settings["decomposition_set"])), settings["number_of_workunits"],\
         settings["blocksize"]))
         if settings["wtlimitsolve"]>0:
             print("Wall time limit is set to {} seconds".format(settings["wtlimitsolve"]))
+            logging.info("Wall time limit is set to {} seconds".format(settings["wtlimitsolve"]))
 
 def initialize_settings():
     python_version = sys.version_info
@@ -370,6 +397,8 @@ def mp_launch_solver (input, event):
 
     #scale ttl to number of tasks
     time_to_live = round(input[1] * ttl)
+    if time_to_live < 1: 
+        time_to_live = 10
 
     if not event.is_set():
         t1 = time.perf_counter()
@@ -408,6 +437,7 @@ def run_sampler(sample_data):
     sampler_pd['diapason_size'] = settings["diapsize"]
     sampler_pd["number_of_assumptions"] = settings["numassumpts"]
     sampler_pd["separate_diapasons"] = True
+    
 
     json_sampler_specification = json.dumps(sampler_pd)
     uuid_string =str(uuid.uuid4()) 
@@ -450,6 +480,9 @@ def multiprocess_run_sampler(sampling_inputs):
 
 
 def ALIAS_estimate():
+    
+    #logging.info("Computing estimation for cnf {} and backdoor {}".format(str(settings["cnf"]),\
+    #str(settings["decomposition_set"])))
     d_set_size = 2**len(settings["decomposition_set"])
     
     #print(str(d_set_size))
@@ -499,7 +532,7 @@ def ALIAS_estimate():
     if runtime_estimation!=-1:
         runtime_estimation = (sum*d_set_size)/assumptions_total
     
-
+    logging.info(settings["estimout"].format(runtime_estimation))
     print (settings["estimout"].format(runtime_estimation))
         
 #---    
@@ -507,7 +540,7 @@ def ALIAS_estimate():
 
 #Solve functions
 
-def mp_process_workunit (input, SA_event, INTERRUPT_event):        
+def mp_process_workunit (input, SA_event, INTERRUPT_event, ERROR_event):        
     wu_index = input
     d_set_size = 2**len(settings["decomposition_set"])
     mask = '0'+str(len(settings["decomposition_set"]))+'b'
@@ -519,10 +552,11 @@ def mp_process_workunit (input, SA_event, INTERRUPT_event):
     wu_diapason_end   =  [int(t) for t in format(wu_end_int, mask)]
     
     #tmp = [int(t) for t in format(m, mask)]
-    wu_res = 0
-
-    if not SA_event.is_set() and not INTERRUPT_event.is_set():                    
-
+    wu_res = 0    
+    if len(os.listdir(settings["wd"])) > settings["maxnumfiles"] * 1.5:        
+        ERROR_event.set()
+    if not SA_event.is_set() and not INTERRUPT_event.is_set() and not ERROR_event.is_set():                    
+        
         wu_pd= {}
         wu_pd['decomposition_set'] = settings["decomposition_set"]
         wu_pd['mode'] = "manual_whole"
@@ -542,12 +576,15 @@ def mp_process_workunit (input, SA_event, INTERRUPT_event):
 
         lines = wu_runsampling.stdout.split('\n')
         wu_assumption_files=[]
+        wu_assumptions_total = 0
         for line in lines:
             #print(line)
             if (line.find(wu_ufn) != -1):    
                 tmp = (line.rstrip().split(" "))[0]
                 wu_assumption_files.append(tmp)    
+                wu_assumptions_total = wu_assumptions_total + int ((line.rstrip().split(" "))[1])
         #print(str(assumption_files))
+
 
         t1 = time.perf_counter()
 
@@ -588,13 +625,16 @@ def mp_process_workunit (input, SA_event, INTERRUPT_event):
         
         wu_res = t2-t1
         # print(res)
-    return wu_res
+    return wu_res, wu_assumptions_total
 
-def log_result(results, event1, event2, n_of_points):
+def log_result(results, index, event1, event2, event3, n_of_points):
     def lr(retval):
-        results.append(retval)
+        results.append(retval[0])
         #if (len(results)%5==0):
-        if not event1.is_set() and not event2.is_set():
+        if not event1.is_set() and not event2.is_set() and not event3.is_set():
+            logging.debug("Workunit {} [{} assumptions total] done in time {} ({}/{}) ".format(str(index), str(retval[1]), str(retval), str(len(results)),str(settings["number_of_workunits"])))
+            if len(results) % 10 == 0:
+                logging.debug("Elapsed time: {}".format(str(time.perf_counter() - settings["solving_started"])))
             print ('{} % done'.format(100*len(results)/n_of_points))
     return lr
     
@@ -605,16 +645,22 @@ def multiprocess_solve(solve_data):
         m = multiprocessing.Manager()
         SA_event = m.Event()
         INTERRUPT_event = m.Event()
+        ERROR_event = m.Event()
         results = []
         
         for item in solve_data:
-            p.apply_async(mp_process_workunit,(item,SA_event, INTERRUPT_event),callback=log_result(results,SA_event,INTERRUPT_event,len(solve_data)))                                
+            p.apply_async(mp_process_workunit,(item,SA_event, INTERRUPT_event, ERROR_event),\
+            callback=log_result(results, item, SA_event,INTERRUPT_event,ERROR_event, len(solve_data)))                                
         p.close()
         p.join()
         if SA_event.is_set() == True:
             print("SA found!")
-        if INTERRUPT_event.is_set()== True:
+            logging.info("Satisfying assignment found")
+        if INTERRUPT_event.is_set()== True:            
             settings["interrupted"] = True
+            logging.info("Interrupted solving due to time limit")
+        if ERROR_event.is_set()== True:                        
+            logging.info("Interrupted solving due to ERROR (total number of files 1.5 times larger than should be")
     return results
    
 
@@ -623,6 +669,15 @@ def ALIAS_solve():
     solve_data = [i for i in range(0,settings["number_of_workunits"])]
     #print(str(solve_data))
     solving_start = time.perf_counter()  
+    
+    #logging.info("Starting solving for cnf {} with backdoor {}, time limit {}".format(\
+    #settings["cnf"],str(settings["decomposition_set"]),str(settings["wtlimitsolve"])))
+
+    #workunit_size = 2**len(settings["decomposition_set"]) / settings["number_of_workunits"]
+    
+    #logging.info("The search space is split into {} workuints of size {}".format(\
+    #str(settings["number_of_workunits"]), str(workunit_size)))
+
     settings["solving_started"] = solving_start
     
     results = multiprocess_solve(solve_data)

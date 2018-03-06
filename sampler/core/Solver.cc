@@ -2019,6 +2019,7 @@ bool Solver::gen_diapason_whole(std::vector<int> d_set, std::vector<int> &diapas
 			if (k < 0) {
 				//				printf("Setting ok to false\n");
 				ok = false;
+				res = false;
 			}
 			else
 			{
