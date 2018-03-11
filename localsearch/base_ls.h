@@ -11,6 +11,8 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <iterator>
+#include <set>
 
 #include "point.h"
 
@@ -26,7 +28,7 @@ class base_local_search
 {
 public:
 	base_local_search();
-	vector<unsigned> vars;
+	vector<var> vars;
 	vector<point> checked_points;
 	unsigned skipped_points_count;
 	unsigned interrupted_points_count;
@@ -47,8 +49,7 @@ public:
 	unsigned vars_decr_times;
 	chrono::high_resolution_clock::time_point start_t;
 	int verbosity;
-	vector<unsigned> vars_records;
-
+	
 	int getCpuCores();
 	string getCmdOutput(const char* cmd);
 	double timeFromStart();
@@ -56,8 +57,8 @@ public:
 
 	void init();
 	void loadVars();
-	vector<unsigned> getAllCnfVars(const string filename);
-	vector<unsigned> readVarsFromPcs(string pcs_name);
+	vector<var> getAllCnfVars(const string filename);
+	vector<var> readVarsFromPcs(string pcs_name);
 	bool isEstTooLong();
 	void writeToGraphFile(const string str);
 	void setGraphFileName();

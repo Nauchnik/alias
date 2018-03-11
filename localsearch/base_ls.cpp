@@ -37,7 +37,7 @@ void base_local_search::loadVars()
 
 // Parse a dimacs CNF formula from a given file and
 // save its clauses into a given vector.
-vector<unsigned> base_local_search::getAllCnfVars(const string filename)
+vector<var> base_local_search::getAllCnfVars(const string filename)
 {
 	int vars_count = 0;
 	ifstream ifile(filename.c_str());
@@ -66,14 +66,19 @@ vector<unsigned> base_local_search::getAllCnfVars(const string filename)
 
 	ifile.close();
 
-	vector<unsigned> vars_vec;
-	for (int i = 0; i < vars_count; i++)
-		vars_vec.push_back(i + 1);
+	vector<var> vars_vec;
+	var tmp_var;
+	for (int i = 0; i < vars_count; i++) {
+		tmp_var.value = i + 1;
+		tmp_var.calculations = 0;
+		tmp_var.global_records = 0;
+		vars_vec.push_back(tmp_var);
+	}
 
 	return vars_vec;
 }
 
-vector<unsigned> base_local_search::readVarsFromPcs(string pcs_name)
+vector<var> base_local_search::readVarsFromPcs(string pcs_name)
 {
 	ifstream pcs_file(pcs_name);
 	if (!pcs_file.is_open()) {
@@ -82,8 +87,8 @@ vector<unsigned> base_local_search::readVarsFromPcs(string pcs_name)
 	}
 
 	string str;
-	unsigned var;
-	vector<unsigned> vars_vec;
+	vector<var> vars_vec;
+	var tmp_var;
 	while (getline(pcs_file, str)) {
 		if (str.size() <= 2)
 			continue;
@@ -100,8 +105,10 @@ vector<unsigned> base_local_search::readVarsFromPcs(string pcs_name)
 			continue;
 		stringstream sstream;
 		sstream << str;
-		sstream >> var;
-		vars_vec.push_back(var);
+		sstream >> tmp_var.value;
+		tmp_var.calculations = 0;
+		tmp_var.global_records = 0;
+		vars_vec.push_back(tmp_var);
 	}
 
 	pcs_file.close();
@@ -209,10 +216,6 @@ void base_local_search::init()
 {
 	loadVars();
 	setGraphFileName();
-
-	vars_records.resize(vars.size());
-	for (auto x : vars_records)
-		x = 0;
 	
 	cout << "cnf_name " << cnf_name << endl;
 	cout << "pcs_name " << pcs_name << endl;
@@ -240,11 +243,16 @@ void base_local_search::calculateEstimation(point &cur_point)
 		sstream << out_str;
 		sstream >> cur_point.estimation;
 	}
+	if (!is_jump_mode) {
+		for (unsigned j = 0; j < cur_point.value.size(); j++)
+			if (cur_point.value[j])
+				vars[j].calculations++;
+	}
 }
 
 bool base_local_search::solveInstance()
 {
-	cout << "solve an instance using record point" << endl;
+	cout << "solve an instance using a record point" << endl;
 
 	if (isTimeExceeded())
 		return false;
@@ -292,7 +300,7 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 	}
 
 	for (unsigned i = 0; i < vars.size(); i++) {
-		sstream << vars[i];
+		sstream << vars[i].value;
 		command_str += " -v" + sstream.str() + " '" + (cur_point.value[i] == true ? '1' : '0') + "'";
 		sstream.str(""); sstream.clear();
 	}
