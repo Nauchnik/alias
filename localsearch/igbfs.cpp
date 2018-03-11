@@ -35,91 +35,64 @@ void igbfs::backJump() {
 point igbfs::permutateRecordPoint()
 {
 	cout << "* permutate record point" << endl;
-	vector<var> global_record_vars_vec;
+	vector<var> global_record_vars_vec, extra_vars;
 	for (unsigned i = 0; i < global_record_point.value.size(); i++)
 		if (global_record_point.value[i])
 			global_record_vars_vec.push_back(vars[i]);
-	cout << "global_record_vars_vec var values" << endl;
+		else 
+			extra_vars.push_back(vars[i]);
+	// get additional vars with low calculations
+	vector<var> add_calc_vars = extra_vars;
+	sort(add_calc_vars.begin(), add_calc_vars.end(), compareByCalculations);
+	cout << "extra vars sorted by calculations : " << endl;
+	for (auto x : add_calc_vars)
+		cout << x.calculations << " ";
+	cout << "get first " << ADD_VARS_CALC << " of them" << endl;
+	add_calc_vars.resize(ADD_VARS_CALC);
+	// get additional vars with high global records
+	vector<var> add_records_vars = extra_vars;
+	sort(add_records_vars.begin(), add_records_vars.end(), compareByRecords);
+	reverse(begin(add_records_vars), end(add_records_vars));
+	cout << "add_records_vars sorted by records : " << endl;
+	for (auto x : add_records_vars)
+		cout << x.global_records << " ";
+	cout << "get first " << ADD_VARS_RECORDS << " of them" << endl;
+	add_records_vars.resize(ADD_VARS_RECORDS);
+	// get vars with low records to exclude
+	sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByRecords);
+	cout << "current global record sorted by records : " << endl;
+	for (auto x : global_record_vars_vec)
+		cout << x.global_records << " ";
+	cout << "get last " << REM_VARS_RECORDS << " of them" << endl;
+	reverse(begin(global_record_vars_vec), end(global_record_vars_vec));
+	global_record_vars_vec.resize(global_record_vars_vec.size() - REM_VARS_RECORDS);
+	sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByRecords);
+	cout << "current global record after remove, sorted by records : " << endl;
+	for (auto x : global_record_vars_vec)
+		cout << x.global_records << " ";
+	// add vars
+	cout << "add additional vars" << endl;
+	for (auto x : add_records_vars)
+		global_record_vars_vec.push_back(x);
+	for (auto x : add_records_vars)
+		global_record_vars_vec.push_back(x);
+	sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByVarValue);
+	cout << "new point : " << endl;
 	for (auto x : global_record_vars_vec)
 		cout << x.value << " ";
 	cout << endl;
-	vector<var> vars_mod_1 = global_record_vars_vec;
-	sort(vars_mod_1.begin(), vars_mod_1.end(), compareByRecords);
-	vector<var> vars_mod_2;
-	copy(vars_mod_1.begin() + REM_VARS_RECORDS, vars_mod_1.end(), vars_mod_2.begin());
+		
 	point mod_point;
-	
-	/*vector<var> calc_add_vec = vars;
-	cout << "sort by calculations" << endl;
-	sort(calc_add_vec.begin(), calc_add_vec.end(), compareByCalculations);
-	cout << "sorted by calculations : " << endl;
-	for (auto x : calc_add_vec)
-		cout << x.calculations << " ";
-	cout << endl;
-	calc_add_vec.resize(ADD_VARS_CALC);
-	cout << "calc_add_vec calculations : " << endl;
-	for (auto x : calc_add_vec)
-		cout << x.calculations << " ";
-	cout << endl;
-	vector<var> vars_mod_1 = vars;
-	for (auto x : calc_add_vec)
-		vars_mod_1[x.value - 1].value = 0;
-	vector<var> vars_mod_2;
-	for (auto x : vars_mod_1)
-		if (x.value > 0)
-			vars_mod_2.push_back(x);
-	cout << "vars_mod_2 values : " << endl;
-	for (auto x : vars_mod_2)
-		cout << x.value << " ";
-	cout << endl;
-	cout << "sort by records" << endl;
-	sort(vars_mod_2.begin(), vars_mod_2.end(), compareByRecords);
-	cout << "vars_mod_2 records : " << endl;
-	for (auto x : vars_mod_2)
-		cout << x.global_records << " ";
+	mod_point.value.resize(vars.size());
+	for (unsigned i = 0; i < vars.size(); i++)
+		mod_point.value[i] = false;
+	for (unsigned i = 0; i < global_record_vars_vec.size(); i++)
+		mod_point.value[global_record_vars_vec[i].value - 1] = true;
+	cout << "mod_point : " << endl;
+	for (auto x : mod_point.value)
+		cout << x << " ";
 	cout << endl;
 	
-	vector<var> global_rem_vec = vars_mod_2;
-	global_rem_vec.resize(REM_VARS_RECORDS);
-	cout << "global_rem_vec records : " << endl;
-	for (auto x : global_rem_vec)
-		cout << x.global_records << " ";
-	cout << endl;
-	vector<var> global_add_vec;
-	for (unsigned i = vars_mod_2.size() - ADD_VARS_RECORDS; i < vars_mod_2.size(); i++)
-		global_add_vec.push_back(vars_mod_2[i]);
-	cout << "global_add_vec records : " << endl;
-	for (auto x : global_add_vec)
-		cout << x.global_records << " ";
-	cout << endl;
-
-	cout << "sort by var values" << endl;
-	sort(calc_add_vec.begin(), calc_add_vec.end(), compareByVarValue);
-	sort(global_rem_vec.begin(), global_rem_vec.end(), compareByVarValue);
-	sort(global_add_vec.begin(), global_add_vec.end(), compareByVarValue);
-	cout << "global_add_vec values :" << endl;
-	for (auto x : global_add_vec)
-		cout << x.value << " ";
-	cout << endl;
-	cout << "global_rem_vec values :" << endl;
-	for (auto x : global_rem_vec)
-		cout << x.value << " ";
-	cout << endl;
-	cout << "calc_add_vec values :" << endl;
-	for (auto x : calc_add_vec)
-		cout << x.value << " ";
-	cout << endl;
-
-	// remove vars
-	mod_point = global_record_point;
-	for (auto x : global_rem_vec)
-		mod_point[x.value - 1].value = 0;
-	for (auto x : vars_mod_1)
-		if (x.value > 0)
-			vars_mod_2.push_back(x);*/
-
-	// add vars
-
 	while (isChecked(mod_point)) {
 		mod_point = randPermutateRecordPoint(); // get random point until an unchecked one will be found
 	}
@@ -289,6 +262,11 @@ void igbfs::updateLocalRecord(point cur_point)
 	else {
 		cout << "* new local_record_estimation " << local_record_point.estimation <<
 			" with weight " << local_record_point.weight() << endl;
+		stringstream sstream;
+		//"vars est-1-core est-" << cpu_cores << "-cores elapsed" << endl;
+		sstream << "\t" << global_record_point.weight() << " " << global_record_point.estimation << " " <<
+			global_record_point.estimation / cpu_cores << " " << timeFromStart();
+		writeToGraphFile(sstream.str());
 	}
 	cout << "time " << timeFromStart() << endl;
 	
