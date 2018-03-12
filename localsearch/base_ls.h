@@ -17,7 +17,7 @@
 #include "point.h"
 
 const double DEFAULT_TIME_LIMIT = 3600;
-const unsigned MAX_SOLVING_VARS = 32;
+const unsigned MAX_SOLVING_VARS = 35;
 
 #define SOLVE 1
 #define ESTIMATE 2
