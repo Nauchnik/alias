@@ -92,6 +92,12 @@ point igbfs::permutateRecordPoint()
 	for (auto x : mod_point.value)
 		cout << x << " ";
 	cout << endl;
+
+	if (mod_point.weight() - 10 != global_record_point.weight()) {
+		cerr << "mod_point weight " << mod_point.weight() << endl;
+		cerr << " global_record_point weight " << global_record_point.weight() << endl;
+		exit(-1);
+	}
 	
 	while (isChecked(mod_point)) {
 		mod_point = randPermutateRecordPoint(); // get random point until an unchecked one will be found
@@ -190,7 +196,7 @@ void igbfs::GBFS(const point start_point)
 			if (cur_point.estimation <= 0) {
 				cout << "skip point with estimation " << cur_point.estimation << endl;
 				interrupted_points_count++;
-				if ( is_jump_mode ) {
+				if (is_jump_mode) {
 					backJump();
 					is_record_updated = true;
 					break;
@@ -204,12 +210,14 @@ void igbfs::GBFS(const point start_point)
 				updateLocalRecord(cur_point);
 				break;
 			}
-			else {
-				if (i >= 0) // return initial value
-					cur_point.value[changing_vars[i]] = local_record_point.value[changing_vars[i]]; 
+			else if ( (is_jump_mode) && (i == -1) ) { // next point in jump mode is worse than previous
+				cout << "backjumping cause of i == -1" << endl;
+				backJump();
+				is_record_updated = true;
+				break;
 			}
 		}
-
+		
 		if (isTimeExceeded() || isEstTooLong())
 			break; // if time is up, then stop GBFS
 
@@ -237,15 +245,17 @@ void igbfs::updateLocalRecord(point cur_point)
 		sstream << global_record_point.weight() << " " << global_record_point.estimation << " " <<
 			global_record_point.estimation / cpu_cores << " " << timeFromStart();
 		writeToGraphFile(sstream.str());
-		if (global_record_point.weight() <= prev_global_record_point.weight())
-			vars_decr_times++;
-		else {
-			vars_decr_times = 0;
-			if (is_jump_mode) {
+		if (is_jump_mode) {
+			if (global_record_point.weight() <= prev_global_record_point.weight())
+				vars_decr_times++;
+			else {
+				vars_decr_times = 0;
 				is_jump_mode = false;
-				cout << "** is_jump_mode " << is_jump_mode << endl;
+					cout << "** is_jump_mode " << is_jump_mode << endl;
 			}
 		}
+		if (global_record_point.weight() < MIN_VARS_JUMP_FROM)
+			is_jump_mode = false;
 		if (!is_jump_mode)
 			for (unsigned j = 0; j < global_record_point.value.size(); j++)
 				if (global_record_point.value[j])
@@ -283,18 +293,16 @@ point igbfs::jumpPoint(point cur_point)
 	before_jump_point = cur_point;
 	point jump_point = cur_point;
 	cout << "jump_step " << jump_step << endl;
-	if (cur_point.value.size() > 10) {
-		unsigned changed_vals = 0;
-		for (;;) {
-			unsigned rand_ind = rand() % cur_point.value.size();
-			if (jump_point.value[rand_ind]) {
-				jump_point.value[rand_ind] = false;
-				changed_vals++;
-			}
-			if (changed_vals == jump_step) {
-				//jump_step += 10;
-				break;
-			}
+	unsigned changed_vals = 0;
+	for (;;) {
+		unsigned rand_ind = rand() % cur_point.value.size();
+		if (jump_point.value[rand_ind]) {
+			jump_point.value[rand_ind] = false;
+			changed_vals++;
+		}
+		if (changed_vals == jump_step) {
+			//jump_step += 10;
+			break;
 		}
 	}
 	cout << "jump point weight " << jump_point.weight() << endl;
