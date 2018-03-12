@@ -36,7 +36,7 @@ point igbfs::permutateRecordPoint()
 {
 	cout << "* permutate record point" << endl;
 	vector<var> global_record_vars_vec, extra_vars;
-	for (unsigned i = 0; i < global_record_point.value.size(); i++)
+	for (unsigned i = 0; i < vars.size(); i++)
 		if (global_record_point.value[i])
 			global_record_vars_vec.push_back(vars[i]);
 		else 
@@ -44,26 +44,26 @@ point igbfs::permutateRecordPoint()
 	// get additional vars with low calculations
 	vector<var> add_calc_vars = extra_vars;
 	sort(add_calc_vars.begin(), add_calc_vars.end(), compareByCalculations);
-	cout << "extra vars sorted by calculations : " << endl;
+	cout << "add_calc_vars sorted by calculations : " << endl;
 	for (auto x : add_calc_vars)
 		cout << x.calculations << " ";
-	cout << "get first " << ADD_VARS_CALC << " of them" << endl;
+	cout << endl << "get first " << ADD_VARS_CALC << " of them" << endl;
 	add_calc_vars.resize(ADD_VARS_CALC);
 	// get additional vars with high global records
 	vector<var> add_records_vars = extra_vars;
 	sort(add_records_vars.begin(), add_records_vars.end(), compareByRecords);
 	reverse(begin(add_records_vars), end(add_records_vars));
-	cout << "add_records_vars sorted by records : " << endl;
+	cout << "add_records_vars sorted (reverse) by records : " << endl;
 	for (auto x : add_records_vars)
 		cout << x.global_records << " ";
-	cout << "get first " << ADD_VARS_RECORDS << " of them" << endl;
+	cout << endl << "get first " << ADD_VARS_RECORDS << " of them" << endl;
 	add_records_vars.resize(ADD_VARS_RECORDS);
 	// get vars with low records to exclude
 	sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByRecords);
 	cout << "current global record sorted by records : " << endl;
 	for (auto x : global_record_vars_vec)
 		cout << x.global_records << " ";
-	cout << "get last " << REM_VARS_RECORDS << " of them" << endl;
+	cout << endl << "remove first " << REM_VARS_RECORDS << " of them" << endl;
 	reverse(begin(global_record_vars_vec), end(global_record_vars_vec));
 	global_record_vars_vec.resize(global_record_vars_vec.size() - REM_VARS_RECORDS);
 	sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByRecords);
@@ -71,8 +71,8 @@ point igbfs::permutateRecordPoint()
 	for (auto x : global_record_vars_vec)
 		cout << x.global_records << " ";
 	// add vars
-	cout << "add additional vars" << endl;
-	for (auto x : add_records_vars)
+	cout << endl << "add additional vars" << endl;
+	for (auto x : add_calc_vars)
 		global_record_vars_vec.push_back(x);
 	for (auto x : add_records_vars)
 		global_record_vars_vec.push_back(x);
@@ -81,7 +81,7 @@ point igbfs::permutateRecordPoint()
 	for (auto x : global_record_vars_vec)
 		cout << x.value << " ";
 	cout << endl;
-		
+	
 	point mod_point;
 	mod_point.value.resize(vars.size());
 	for (unsigned i = 0; i < vars.size(); i++)
@@ -264,8 +264,8 @@ void igbfs::updateLocalRecord(point cur_point)
 			" with weight " << local_record_point.weight() << endl;
 		stringstream sstream;
 		//"vars est-1-core est-" << cpu_cores << "-cores elapsed" << endl;
-		sstream << "\t" << global_record_point.weight() << " " << global_record_point.estimation << " " <<
-			global_record_point.estimation / cpu_cores << " " << timeFromStart();
+		sstream << "\t" << local_record_point.weight() << " " << local_record_point.estimation << " " <<
+			local_record_point.estimation / cpu_cores << " " << timeFromStart();
 		writeToGraphFile(sstream.str());
 	}
 	cout << "time " << timeFromStart() << endl;
