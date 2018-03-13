@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <iterator>
 
 bool compareByCalculations(const var &a, const var &b)
 {
@@ -49,8 +50,17 @@ point igbfs::permutateRecordPoint()
 		cout << x.calculations << " ";
 	cout << endl << "get first " << ADD_VARS_CALC << " of them" << endl;
 	add_calc_vars.resize(ADD_VARS_CALC);
+	// exclude best calc vars from extra vars
+	vector<var> extra_vars_wout_add_calc;
+	vector<var>::iterator it;
+	for (auto x : extra_vars) {
+		it = find(add_calc_vars.begin(), add_calc_vars.end(), x);
+		if (it == add_calc_vars.end())
+			extra_vars_wout_add_calc.push_back(x);
+	}
+	cout << "extra_vars_wout_add_calc size " << extra_vars_wout_add_calc.size() << endl;
 	// get additional vars with high global records
-	vector<var> add_records_vars = extra_vars;
+	vector<var> add_records_vars = extra_vars_wout_add_calc;
 	sort(add_records_vars.begin(), add_records_vars.end(), compareByRecords);
 	reverse(begin(add_records_vars), end(add_records_vars));
 	cout << "add_records_vars sorted (reverse) by records : " << endl;

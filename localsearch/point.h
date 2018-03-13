@@ -12,6 +12,11 @@ struct var
 	unsigned global_records;
 	unsigned calculations;
 	unsigned value;
+
+	bool operator==(const var a)
+	{
+		return ((*this).value == a.value);
+	}
 };
 
 class point
