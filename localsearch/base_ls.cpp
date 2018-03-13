@@ -307,3 +307,16 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 
 	return command_str;
 }
+
+void base_local_search::printGlobalRecordPoint()
+{
+	global_record_point.print(vars);
+	ofstream ofile("global_record");
+	ofile << "estimation-1-core backdoor" << endl;
+	ofile << global_record_point.estimation;
+	for (unsigned i=0; i<global_record_point.value.size(); i++) {
+		if (global_record_point.value[i])
+			ofile << " " << i + 1;
+	}
+	ofile.close();
+}
