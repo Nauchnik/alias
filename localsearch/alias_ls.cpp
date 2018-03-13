@@ -7,36 +7,16 @@ void writeUsage();
 
 int main(int argc, char *argv[])
 {
-	if ( argc < 9 ) {
+	if ( ( ( argc == 2 ) && (argv[1] == "--help") ) || (argc < 3) ) {
 		writeUsage();
-		exit(-1);
+		return 1;
 	}
 	
 	igbfs igbfs_obj;
-	bool is_solve = true;
-
-	for (int i = 1; i < argc; i++) {
-		string par_str = argv[i];
-		if ((par_str == "-cnf") && (i+1 < argc))
-			igbfs_obj.cnf_name = argv[i+1];
-		else if ((par_str == "-pcs") && (i+1 < argc))
-			igbfs_obj.pcs_name = argv[i+1];
-		else if ((par_str == "-script") && (i + 1 < argc))
-			igbfs_obj.alias_script_name = argv[i + 1];
-		else if ((par_str == "-solver") && (i+1 < argc))
-			igbfs_obj.solver_name = argv[i + 1];
-		else if ((par_str == "-timelimit") && (i+1 < argc))
-			igbfs_obj.time_limit = atof(argv[i+1]);
-		else if ((par_str == "-verb") && (i+1 < argc))
-			igbfs_obj.verbosity = atoi(argv[i + 1]);
-		else if (par_str == "-e")
-			is_solve = false;
-	}
-	
+	igbfs_obj.parseOptions(argc, argv);
 	igbfs_obj.init();
 	igbfs_obj.iteratedGBFS();
-	if (is_solve)
-		igbfs_obj.solveInstance();
+	igbfs_obj.solveInstance();
 	cout << "*** final total time " << igbfs_obj.timeFromStart() << endl;
 	
 	return 0;
@@ -44,5 +24,15 @@ int main(int argc, char *argv[])
 
 void writeUsage()
 {
-	cout << "Usage: -cnf file_name -script file_name -solver file_name [-timelimit seconds] [-pcs file_name] [-e] [-verb val]" << endl;
+	cout << "USAGE: ./alias_ls [options]" << endl;
+	cout << endl << "CORE OPTIONS:" << endl << endl;
+	cout << "-cnf      = <string>.                   [OBLIGATORY] CNF instance name." << endl;
+	cout << "-script   = <string>.                   [OBLIGATORY] ALIAS script name." << endl;
+	cout << "-solver   = <string>.                   [OBLIGATORY] IPASIR-based incremental SAT solver name." << endl;
+	cout << "-pcs      = <string>.                   [OPTIONAL]   Name of a PCS (Parameter Configuration Space) file with a start point" << endl;
+	cout << "--solve                                 [OPTIONAL]   Enable solving of a given instance by a found backdoor." << endl;
+	cout << endl << "MAIN OPTIONS:" << endl << endl;
+	cout << "-cpu-lim  = <int32> (default: 3600)     [OPTIONAL]   CPU wall time limit." << endl;
+	cout << "-verb     = <int32> [0..2] (default: 1) [OPTIONAL]   Verbosity." << endl;
+	cout << "--help    Print help message." << endl;
 }

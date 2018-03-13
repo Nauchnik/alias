@@ -247,9 +247,10 @@ void igbfs::updateLocalRecord(point cur_point)
 	if (local_record_point.estimation < global_record_point.estimation) {
 		point prev_global_record_point = global_record_point;
 		global_record_point = local_record_point;
-		cout << "** new global_record_esimation " << global_record_point.estimation << 
-			    " with weight " << global_record_point.weight() << endl;
-		printGlobalRecordPoint();
+		cout << "** new record backdoor with weight " << global_record_point.weight() <<
+			    " and estimation " << global_record_point.estimation / cpu_cores << " seconds"
+			 << " on " << cpu_cores << " CPU cores :" << endl;
+		//printGlobalRecordPoint();
 		stringstream sstream;
 		//"vars est-1-core est-" << cpu_cores << "-cores elapsed" << endl;
 		sstream << global_record_point.weight() << " " << global_record_point.estimation << " " <<
@@ -270,14 +271,16 @@ void igbfs::updateLocalRecord(point cur_point)
 			for (unsigned j = 0; j < global_record_point.value.size(); j++)
 				if (global_record_point.value[j])
 					vars[j].global_records++;
-		cout << "* vars global records : ";
-		for (auto x : vars)
-			cout << x.global_records << " ";
-		cout << endl;
-		cout << "* vars calculations : ";
-		for (auto x : vars)
-			cout << x.calculations << " ";
-		cout << endl;
+		if (verbosity > 1) {
+			cout << "* vars global records : ";
+			for (auto x : vars)
+				cout << x.global_records << " ";
+			cout << endl;
+			cout << "* vars calculations : ";
+			for (auto x : vars)
+				cout << x.calculations << " ";
+			cout << endl;
+		}
 	}
 	else {
 		cout << "* new local_record_estimation " << local_record_point.estimation <<

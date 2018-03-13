@@ -41,13 +41,14 @@ public:
 	string alias_script_name;
 	string solver_name;
 	int cpu_cores;
-	double time_limit;
+	double cpu_lim;
 	double wall_time_solving;
 	unsigned jump_step;
 	point before_jump_point;
 	bool is_jump_mode;
 	unsigned vars_decr_times;
 	chrono::high_resolution_clock::time_point start_t;
+	bool is_solve;
 	int verbosity;
 	
 	int getCpuCores();
@@ -55,6 +56,7 @@ public:
 	double timeFromStart();
 	bool isTimeExceeded();
 
+	void parseOptions(const int argc, char *argv[]);
 	void init();
 	void loadVars();
 	vector<var> getAllCnfVars(const string filename);
@@ -71,7 +73,7 @@ public:
 		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());
 	}
 
-	void printGlobalRecordPoint();
+	//void printGlobalRecordPoint();
 };
 
 #endif
