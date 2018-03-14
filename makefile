@@ -1,4 +1,5 @@
 all: 
+	mkdir -p bin
 	cd sampler; export MROOT=..; cd core; make rs; cp sampler_static ../../bin
 	cd localsearch; make; cp alias_ls ../bin/
 	cp ./solver/ALIAS.py ./bin/
