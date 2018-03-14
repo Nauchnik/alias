@@ -1,4 +1,4 @@
-CPP = mpicxx
+CPP = g++
 CPPFLAGS = -O3 -std=c++0x
 
 igbfs: base_ls.o igbfs.o alias_ls.o
@@ -15,5 +15,5 @@ base_ls.o: base_ls.cpp
 
 clean:
 	rm -rf *.o
-	rm alias_ls
+	rm -f alias_ls
 	clear

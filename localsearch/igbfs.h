@@ -9,7 +9,6 @@ using namespace std;
 
 const unsigned INITIAL_JUMP_STEP = 10;
 const unsigned MIN_VARS_JUMP_FROM = 30;
-const unsigned MAX_ITERATIONS = 2;
 const unsigned ADD_VARS_CALC = 7;
 const unsigned ADD_VARS_RECORDS = 8;
 const unsigned REM_VARS_RECORDS = 5;

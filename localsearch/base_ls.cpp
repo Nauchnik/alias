@@ -15,6 +15,7 @@ base_local_search::base_local_search() :
 	is_jump_mode(true),
 	vars_decr_times(0),
 	is_solve(false),
+	jump_lim(DEFAULT_JUMP_LIM),
 	verbosity(1)
 {
 	start_t = chrono::high_resolution_clock::now();
@@ -240,6 +241,8 @@ void base_local_search::parseOptions(const int argc, char *argv[])
 			solver_name = res_str;
 		else if (strPrefix(par_str, "-cpu-lim=", res_str))
 			istringstream(res_str) >> cpu_lim;
+		else if (strPrefix(par_str, "-jump-lim", res_str))
+			istringstream(res_str) >> jump_lim;
 		else if (strPrefix(par_str, "-verb=", res_str))
 			istringstream(res_str) >> verbosity;
 		else if (par_str == "--solve")
@@ -251,6 +254,7 @@ void base_local_search::parseOptions(const int argc, char *argv[])
 	cout << "solver name " << solver_name << endl;
 	cout << "alias script name " << alias_script_name << endl;
 	cout << "cpu lim " << cpu_lim << endl;
+	cout << "jump lim " << jump_lim << endl;
 	cout << "is solve " << is_solve << endl;
 	cout << "verbosity " << verbosity << endl;
 }

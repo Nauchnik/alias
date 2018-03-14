@@ -141,7 +141,7 @@ void igbfs::iteratedGBFS()
 	cout << "start point : " << endl;
 	start_point.print(vars);
 
-	unsigned iteration_count = 0;
+	unsigned jumps_count = 0;
 	global_record_point = start_point;
 	global_record_point.estimation = 1e+308;
 	stringstream sstream;
@@ -150,16 +150,16 @@ void igbfs::iteratedGBFS()
 	writeToGraphFile(sstream.str());
 	sstream.str(""); sstream.clear();
 	for (;;) {
-		cout << endl << "*** GBFS iteration # " << iteration_count << endl;
-		if (iteration_count > 0) {
+		cout << endl << "*** GBFS iteration # " << jumps_count << endl;
+		if (jumps_count > 0) {
 			stringstream sstream;
-			sstream << "--- GBFS iteration # " << iteration_count;
+			sstream << "--- GBFS iteration # " << jumps_count;
 			writeToGraphFile(sstream.str());
 			sstream.str(""); sstream.clear();
 		}
 		GBFS(start_point);
-		iteration_count++;
-		if (isTimeExceeded() || isEstTooLong() || (iteration_count > MAX_ITERATIONS)) {
+		jumps_count++;
+		if (isTimeExceeded() || isEstTooLong() || (jumps_count > jump_lim)) {
 			cout << "*** interrupt the search" << endl;
 			break;
 		}

@@ -18,6 +18,7 @@
 
 const double DEFAULT_TIME_LIMIT = 3600;
 const unsigned MAX_SOLVING_VARS = 35;
+const unsigned DEFAULT_JUMP_LIM = 3;
 
 #define SOLVE 1
 #define ESTIMATE 2
@@ -42,6 +43,7 @@ public:
 	string solver_name;
 	int cpu_cores;
 	double cpu_lim;
+	unsigned jump_lim;
 	double wall_time_solving;
 	unsigned jump_step;
 	point before_jump_point;
