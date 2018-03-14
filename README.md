@@ -9,35 +9,44 @@ solvers.
 Folders:
 solver - contains ALIAS.py and its settings file. ALIAS.py calculates a runtime estimation for a given backdoor. It also can solve a given instance 
 using the backdoor.
-localsearch - implementation of greedy best first search (GBFS) which traverse a search space in order to find a backdoor with low runtime 
-estimation 
+
+localsearch - implementation of greedy best first search (GBFS) which traverse a search space in order to find a backdoor with low runtime estimation 
+
 genipainterval - program for IPASIR. This program, given a CNF formula and a set of assumptions, processes the latter using some incremental way.
+
 sampler - a minisat-based program which prepares data for calculating the runtime estimation for a given backdoor
+
 ipasir - IPASIR sources (https://github.com/biotomas/ipasir) required to build incremental SAT solvers.
+
 utils - scripts for launchsing ALIAS on SMAC and on supercomputers.
 
 ================================================================================
 Build
 
-python3.6+ and git packages are required.
-sudo apt install python3.6 git
+python3.6+ and git packages are required: sudo apt install python3.6 git
 
 git clone --recurse-submodules https://github.com/Nauchnik/alias.git
+
 cd alias
+
 make
 
 make command builds binaries for every IPASIR-compatable SAT solver from the folder alias/ipasir/sat/. By default, this folder contains sources for 
 picosat solver. In order to build any other IPASIR-compatable solver, one should copy its sources into the mentioned folder. Solvers from the SAT 
 Competition 2017 Incremental track https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/ can also  be used fot this purpose. 
 For instance, to build IPASIR-based glucose4, on should:
-- download archive https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
-- unzip archive
-- copy the folder glucose-ipasir/sat/glucose4 to alias/ipasir/sat/
+
+- download to base alias folder the archive https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
+
+- tar xvf glucose-ipasir.zip -C ./
+
+- cp ./glucose-ipasir/sat/glucose4/ ./ipasir/sat/
 
 ================================================================================
 Launch
 
 cd ./bin/
+
 ./alias_ls <options>
 
 By default alias_ls is searching for a backdoor with good estimation. It can also solve a given instance if --solve is set.
