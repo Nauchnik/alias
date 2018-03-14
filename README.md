@@ -16,6 +16,9 @@ utils - some additional scripts
 ================================================================================
 Build
 
+python3.6+ and  git are required
+
+sudo apt install python3.6 git
 git clone --recurse-submodules https://github.com/Nauchnik/alias.git
 cd alias
 make
