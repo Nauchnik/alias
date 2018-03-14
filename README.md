@@ -7,6 +7,7 @@ instance by the same incremental solver. Thereby, ALIAS can be viewed as a tool 
 solvers.
 
 Folders:
+
 solver - contains ALIAS.py and its settings file. ALIAS.py calculates a runtime estimation for a given backdoor. It also can solve a given instance 
 using the backdoor.
 
@@ -32,9 +33,9 @@ cd alias
 make
 
 make command builds binaries for every IPASIR-compatable SAT solver from the folder alias/ipasir/sat/. By default, this folder contains sources for 
-picosat solver. In order to build any other IPASIR-compatable solver, one should copy its sources into the mentioned folder. Solvers from the SAT 
+the picosat solver. In order to build any other IPASIR-compatable solver, one should copy its sources into the mentioned folder. Solvers from the SAT 
 Competition 2017 Incremental track https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/ can also  be used fot this purpose. 
-For instance, to build IPASIR-based glucose4, on should:
+For instance, to build IPASIR-based glucose4, one should:
 
 - download to base alias folder the archive https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
 
@@ -47,7 +48,7 @@ Launch
 
 cd ./bin/
 
-./alias_ls <options>
+./alias_ls [options]
 
 By default alias_ls is searching for a backdoor with good estimation. It can also solve a given instance if --solve is set.
 
