@@ -37,11 +37,11 @@ the picosat solver. In order to build any other IPASIR-compatable solver, one sh
 Competition 2017 Incremental track https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/ can also  be used fot this purpose. 
 For instance, to build IPASIR-based glucose4, one should:
 
-- download to base alias folder the archive https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
+- download the archive https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
 
 - tar xvf glucose-ipasir.zip -C ./
 
-- cp ./glucose-ipasir/sat/glucose4/ ./ipasir/sat/
+- cp ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
 
 ================================================================================
 Launch
@@ -53,12 +53,15 @@ cd ./bin/
 By default alias_ls is searching for a backdoor with good estimation. It can also solve a given instance if --solve is set.
 
 Example #1 -- starting point is a whole set of CNF variables, picosat solver, time limit 100 seconds, don't solve a given instance using a backdoor
+
 ./alias_ls -cnf=../test/challenge-105.cnf -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=100
 
 Example #2 -- starting point is a whole set of CNF variables, glucose4 solver, time limit 3600 seconds, solve a given instance using a backdoor
+
 ./alias_ls -cnf=../test/challenge-105.cnf -solver=genipainterval-glucose4 -script=ALIAS.py -cpu-lim=3600 --solve
 
 Example #3 - starting point is the set of first 72 variables
+
 ./alias_ls -cnf=../test/ASG_72_keystream76_0.cnf -pcs=../test/first72vars.pcs -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=100
 
 ================================================================================
