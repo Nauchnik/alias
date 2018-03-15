@@ -57,7 +57,7 @@ LAUNCHING
 
 cd ./bin/
 
-./alias_ls [options]
+./alias_ls [options] <result-output-file>
 
 By default alias_ls is searching for a backdoor with good estimation. It can also solve a given instance if --solve is set.
 NB! Backdoors variables numbering is from 1.
