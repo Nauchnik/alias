@@ -207,8 +207,7 @@ void base_local_search::reportFinalEstimation()
 	cout << "final runtime estimation on 1 CPU core : " << global_record_point.estimation << endl;
 	cout << "final runtime estimation on " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << endl;
 	cout << "final backdoor : " << endl;
-	//if (!is_solve)
-	//	printGlobalRecordPoint();
+	printGlobalRecordPoint();
 	cout << "total local search time " << timeFromStart() << endl;
 	
 	cout << "skipped points : " << skipped_points_count << endl;
@@ -347,11 +346,11 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 
 	return command_str;
 }
-/*
+
 void base_local_search::printGlobalRecordPoint()
 {
 	global_record_point.print(vars);
-	ofstream ofile("global_record");
+	/*ofstream ofile("global_record");
 	ofile << "Estimation for 1 CPU core : " << global_record_point.estimation << " seconds" << endl;
 	ofile << "Estimation for " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << " seconds" << endl;
 	ofile << "Backdoor (numeration from 1):";
@@ -360,6 +359,5 @@ void base_local_search::printGlobalRecordPoint()
 			ofile << " " << i + 1;
 	}
 	ofile << endl;
-	ofile.close();
+	ofile.close();*/
 }
-*/

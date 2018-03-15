@@ -75,7 +75,7 @@ public:
 		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());
 	}
 
-	//void printGlobalRecordPoint();
+	void printGlobalRecordPoint();
 };
 
 #endif
