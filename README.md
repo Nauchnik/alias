@@ -48,6 +48,8 @@ For instance, to build IPASIR-based glucose4, one should:
 
 - cp ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
 
+- rebuild alias
+
 ================================================================================
 Launch
 
