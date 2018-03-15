@@ -1,28 +1,30 @@
 ================================================================================
-Description
+DESCRIPTION
 
 modulAr tooL for fInding bAckdoors for Sat (ALIAS) - a customizable scalable tool that can employ incremental state-of-the-art SAT solvers and 
 black-box optimization heuristics to search for backdoors for hard SAT instances. The found backdoor is then used to solve the corresponding 
 instance by the same incremental solver. Thereby, ALIAS can be viewed as a tool for constructing backdoor-based divide-and-conquer parallel SAT 
 solvers.
 
-Folders:
+================================================================================
+DIRECTORY OVERVIEW
 
-solver - contains ALIAS.py and its settings file. ALIAS.py calculates a runtime estimation for a given backdoor. It also can solve a given instance 
-using the backdoor.
+solver/          contains ALIAS.py and its settings file. ALIAS.py calculates a runtime estimation for a given backdoor. It also can solve a given instance using the backdoor.
 
-localsearch - implementation of greedy best first search (GBFS) which traverse a search space in order to find a backdoor with low runtime estimation 
+localsearch/     implementation of greedy best first search (GBFS) which traverse a search space in order to find a backdoor with low runtime estimation 
 
-genipainterval - program for IPASIR. This program, given a CNF formula and a set of assumptions, processes the latter using some incremental way.
+genipainterval/  program for IPASIR. This program, given a CNF formula and a set of assumptions, processes the latter using some incremental way.
 
-sampler - a minisat-based program which prepares data for calculating the runtime estimation for a given backdoor
+sampler/         a minisat-based program which prepares data for calculating the runtime estimation for a given backdoor
 
-ipasir - IPASIR sources (https://github.com/biotomas/ipasir) required to build incremental SAT solvers.
+ipasir/          IPASIR sources (https://github.com/biotomas/ipasir) required to build incremental SAT solvers.
 
-utils - scripts for launchsing ALIAS on SMAC and on supercomputers.
+utils/           scripts for launchsing ALIAS on SMAC and on supercomputers.
+
+benchmarks/      contains some crafted and cryptographic instances which were studied by ALIAS, as well as found backdoors
 
 ================================================================================
-Required packages
+REQUIRED PACKAGES
 
 python3.6, g++-7+, build-essential, git, unzip are required
 
@@ -31,7 +33,7 @@ sudo apt-get install python3.6 g++-7 build-essential git unzip
 g++ version 7+ should be set by default
 
 ================================================================================
-Build
+BUILDING
 
 git clone --recurse-submodules https://github.com/Nauchnik/alias.git
 
@@ -53,7 +55,7 @@ For instance, to build IPASIR-based glucose4, one should:
 - rebuild alias, genipainterval-glucose4 will appear in the bin folder
 
 ================================================================================
-Launch
+LAUNCHING
 
 cd ./bin/
 
@@ -63,6 +65,9 @@ By default alias_ls is searching for a backdoor with good estimation. It can als
 NB! Backdoors variables numbering is from 1.
 NB! In order to build a file with start point, one can use /alias/utila/generate_pcs.py
 PCS format is described here http://aclib.net/cssc2014/pcs-format.pdf
+
+================================================================================
+EXAMPLES
 
 Example 1 - starting point is a whole set of CNF variables, picosat961 solver, time limit 100 seconds, just find a backdoor
 

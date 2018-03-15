@@ -7,8 +7,8 @@ all:
 	chmod +x ./ipasir/scripts/mkall.sh; chmod +x ./ipasir/scripts/mkone.sh; chmod +x ./ipasir/scripts/mkcln.sh; 
 	rm -rf ./ipasir/sat/minisat220/
 	rm -rf ./ipasir/app/*
-	cp -r ./genipainterval ./ipasir/app/ 
-	cd ipasir; make all; cp ./bin/genipainterval* ../bin/
+	cp -rf ./genipainterval ./ipasir/app/ 
+	cd ipasir; make all; cp -rf ./bin/genipainterval* ../bin/
 clean: 
 	cd sampler/core/; export MROOT=..; make clean
 	cd localsearch; make clean
