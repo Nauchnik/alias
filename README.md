@@ -22,9 +22,14 @@ ipasir - IPASIR sources (https://github.com/biotomas/ipasir) required to build i
 utils - scripts for launchsing ALIAS on SMAC and on supercomputers.
 
 ================================================================================
-Build
+Required packages
 
-python3.6+ and git packages are required: sudo apt install python3.6 git
+python3.6+, g++, build-essential, git and unzip are required:
+
+sudo apt-get install python3.6 g++ build-essential git unzip
+
+================================================================================
+Build
 
 git clone --recurse-submodules https://github.com/Nauchnik/alias.git
 
@@ -39,7 +44,7 @@ For instance, to build IPASIR-based glucose4, one should:
 
 - download the archive https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
 
-- tar xvf glucose-ipasir.zip -C ./
+- unzip ./glucose-ipasir.zip -d ./glucose-ipasir/
 
 - cp ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
 
@@ -53,12 +58,11 @@ cd ./bin/
 By default alias_ls is searching for a backdoor with good estimation. It can also solve a given instance if --solve is set.
 
 Example #1 -- starting point is a whole set of CNF variables, picosat solver, time limit 100 seconds, don't solve a given instance using a backdoor
-
-./alias_ls -cnf=../test/challenge-105.cnf -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=100
+./alias_ls -cnf=../test/sgen6-1200-5-1.cnf -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=100
 
 Example #2 -- starting point is a whole set of CNF variables, glucose4 solver, time limit 3600 seconds, solve a given instance using a backdoor
 
-./alias_ls -cnf=../test/challenge-105.cnf -solver=genipainterval-glucose4 -script=ALIAS.py -cpu-lim=3600 --solve
+./alias_ls -cnf=../test/sgen6-1200-5-1.cnf -solver=genipainterval-glucose4 -script=ALIAS.py -cpu-lim=3600 --solve
 
 Example #3 - starting point is the set of first 72 variables
 
