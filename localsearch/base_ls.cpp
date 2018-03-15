@@ -16,6 +16,7 @@ base_local_search::base_local_search() :
 	vars_decr_times(0),
 	is_solve(false),
 	jump_lim(DEFAULT_JUMP_LIM),
+	result_output_file(""),
 	verbosity(1)
 {
 	start_t = chrono::high_resolution_clock::now();
@@ -225,12 +226,12 @@ bool strPrefix(const string init_str, const string prefix, string &res_str)
 	return false;
 }
 
-void base_local_search::parseOptions(const int argc, char *argv[])
+void base_local_search::parseParams(const int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++) {
 		string par_str = argv[i];
 		string res_str;
-		if (strPrefix(par_str,      "-cnf=", res_str))
+		if (strPrefix(par_str, "-cnf=", res_str))
 			cnf_name = res_str;
 		else if (strPrefix(par_str, "-pcs=", res_str))
 			pcs_name = res_str;
@@ -246,6 +247,8 @@ void base_local_search::parseOptions(const int argc, char *argv[])
 			istringstream(res_str) >> verbosity;
 		else if (par_str == "--solve")
 			is_solve = true;
+		else
+			result_output_file = par_str;
 	}
 	
 	cout << "cnf name " << cnf_name << endl;
@@ -256,6 +259,7 @@ void base_local_search::parseOptions(const int argc, char *argv[])
 	cout << "jump lim " << jump_lim << endl;
 	cout << "is solve " << is_solve << endl;
 	cout << "verbosity " << verbosity << endl;
+	cout << "result_output_file " << result_output_file << endl;
 }
 
 void base_local_search::init()
@@ -350,14 +354,16 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 void base_local_search::printGlobalRecordPoint()
 {
 	global_record_point.print(vars);
-	/*ofstream ofile("global_record");
-	ofile << "Estimation for 1 CPU core : " << global_record_point.estimation << " seconds" << endl;
-	ofile << "Estimation for " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << " seconds" << endl;
-	ofile << "Backdoor (numeration from 1):";
-	for (unsigned i=0; i<global_record_point.value.size(); i++) {
-		if (global_record_point.value[i])
-			ofile << " " << i + 1;
+	if (result_output_file != "") {
+		ofstream ofile(result_output_file);
+		ofile << "Estimation for 1 CPU core : " << global_record_point.estimation << " seconds" << endl;
+		ofile << "Estimation for " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << " seconds" << endl;
+		ofile << "Backdoor (numeration from 1):" << endl;
+		for (unsigned i = 0; i < global_record_point.value.size(); i++) {
+			if (global_record_point.value[i])
+				ofile << " " << i + 1;
+		}
+		ofile << endl;
+		ofile.close();
 	}
-	ofile << endl;
-	ofile.close();*/
 }

@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	}
 	
 	igbfs igbfs_obj;
-	igbfs_obj.parseOptions(argc, argv);
+	igbfs_obj.parseParams(argc, argv);
 	igbfs_obj.init();
 	igbfs_obj.iteratedGBFS();
 	igbfs_obj.solveInstance();
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
 void writeUsage()
 {
-	cout << "USAGE: ./alias_ls [options]" << endl;
+	cout << "USAGE: ./alias_ls [options] <result-output-file>" << endl;
 	cout << endl << "CORE OPTIONS:" << endl << endl;
 	cout << "-cnf       = <string>.                   [OBLIGATORY] CNF instance name." << endl;
 	cout << "-script    = <string>.                   [OBLIGATORY] ALIAS script name." << endl;

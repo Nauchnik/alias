@@ -51,6 +51,7 @@ public:
 	unsigned vars_decr_times;
 	chrono::high_resolution_clock::time_point start_t;
 	bool is_solve;
+	string result_output_file;
 	int verbosity;
 	
 	int getCpuCores();
@@ -58,7 +59,7 @@ public:
 	double timeFromStart();
 	bool isTimeExceeded();
 
-	void parseOptions(const int argc, char *argv[]);
+	void parseParams(const int argc, char *argv[]);
 	void init();
 	void loadVars();
 	vector<var> getAllCnfVars(const string filename);

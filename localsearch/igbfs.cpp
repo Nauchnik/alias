@@ -180,7 +180,8 @@ void igbfs::GBFS(const point start_point)
 	local_record_point = start_point;
 	local_record_point.estimation = 1e+308;
 
-	cout << "GBFS() start" << endl;
+	if (verbosity > 1)
+		cout << "GBFS() start" << endl;
 	
 	for (;;) {
 		is_record_updated = false;
@@ -248,10 +249,11 @@ void igbfs::updateLocalRecord(point cur_point)
 	if (local_record_point.estimation < global_record_point.estimation) {
 		point prev_global_record_point = global_record_point;
 		global_record_point = local_record_point;
-		cout << "** new record backdoor with weight " << global_record_point.weight() <<
-			    " and estimation " << global_record_point.estimation / cpu_cores << " seconds"
-			 << " on " << cpu_cores << " CPU cores :" << endl;
-		//printGlobalRecordPoint();
+		cout << "elapsed wall time : " << timeFromStart() << " sec | " << 
+			    "record backdoor with " << global_record_point.weight() << " vars | " <<
+			    " estimation " << global_record_point.estimation / cpu_cores << " sec on " << 
+			    cpu_cores << " CPU cores" << endl;
+		printGlobalRecordPoint();
 		stringstream sstream;
 		//"vars est-1-core est-" << cpu_cores << "-cores elapsed" << endl;
 		sstream << global_record_point.weight() << " " << global_record_point.estimation << " " <<
@@ -263,6 +265,7 @@ void igbfs::updateLocalRecord(point cur_point)
 			else {
 				vars_decr_times = 0;
 				is_jump_mode = false;
+				if (verbosity > 1)
 					cout << "** is_jump_mode " << is_jump_mode << endl;
 			}
 		}
@@ -284,15 +287,15 @@ void igbfs::updateLocalRecord(point cur_point)
 		}
 	}
 	else {
-		cout << "* new local_record_estimation " << local_record_point.estimation <<
-			" with weight " << local_record_point.weight() << endl;
+		if (verbosity > 1)
+			cout << "* new local_record_estimation " << local_record_point.estimation <<
+				" with weight " << local_record_point.weight() << endl;
 		stringstream sstream;
 		//"vars est-1-core est-" << cpu_cores << "-cores elapsed" << endl;
 		sstream << "\t" << local_record_point.weight() << " " << local_record_point.estimation << " " <<
 			local_record_point.estimation / cpu_cores << " " << timeFromStart();
 		writeToGraphFile(sstream.str());
 	}
-	cout << "time " << timeFromStart() << endl;
 	
 	if ( (is_jump_mode) && (cur_point.weight() > MIN_VARS_JUMP_FROM) && (vars_decr_times >= 4) )
 		local_record_point = jumpPoint(cur_point);
@@ -306,7 +309,6 @@ point igbfs::jumpPoint(point cur_point)
 	//cout << "* forget global record" << endl;
 	before_jump_point = cur_point;
 	point jump_point = cur_point;
-	cout << "jump_step " << jump_step << endl;
 	unsigned changed_vals = 0;
 	for (;;) {
 		unsigned rand_ind = rand() % cur_point.value.size();
@@ -319,8 +321,11 @@ point igbfs::jumpPoint(point cur_point)
 			break;
 		}
 	}
-	cout << "jump point weight " << jump_point.weight() << endl;
-	jump_point.print(vars);
+	if (verbosity > 1) {
+		cout << "jump_step " << jump_step << endl;
+		cout << "jump point weight " << jump_point.weight() << endl;
+		jump_point.print(vars);
+	}
 	
 	return jump_point;
 }
