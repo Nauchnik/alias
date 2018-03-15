@@ -46,7 +46,7 @@ For instance, to build IPASIR-based glucose4, one should:
 
 - unzip ./glucose-ipasir.zip -d ./glucose-ipasir/
 
-- cp ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
+- cp -r ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
 
 - rebuild alias
 
@@ -69,9 +69,3 @@ Example #2 -- starting point is a whole set of CNF variables, glucose4 solver, t
 Example #3 - starting point is the set of first 72 variables
 
 ./alias_ls -cnf=../test/ASG_72_keystream76_0.cnf -pcs=../test/first72vars.pcs -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=100
-
-================================================================================
-License
-
-LICENSE generic license for parts of this software not explicitly covered by its own license restrictions, which can be found in the 
-corresponding LICENSE or COPYRIGHT file in a sub directory or in a distribution package, such as in an included tar or zip file
