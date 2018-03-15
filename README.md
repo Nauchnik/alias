@@ -26,11 +26,9 @@ benchmarks/      contains some crafted and cryptographic instances which were st
 ================================================================================
 REQUIRED PACKAGES
 
-python3.6, g++-7+, build-essential, git, unzip are required
+python3.6, g++ (version 5+), build-essential, git, unzip are required
 
-sudo apt-get install python3.6 g++-7 build-essential git unzip
-
-g++ version 7+ should be set by default
+sudo apt-get install python3.6 g++ build-essential git unzip
 
 ================================================================================
 BUILDING
