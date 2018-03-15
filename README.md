@@ -50,7 +50,7 @@ For instance, to build IPASIR-based glucose4, one should:
 
 - cp -r ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
 
-- rebuild alias
+- rebuild alias, genipainterval-glucose4 will appear in the bin folder
 
 ================================================================================
 Launch
@@ -60,14 +60,18 @@ cd ./bin/
 ./alias_ls [options]
 
 By default alias_ls is searching for a backdoor with good estimation. It can also solve a given instance if --solve is set.
+NB! Backdoors variables numbering is from 1.
+NB! In order to build a file with start point, one can use /alias/utila/generate_pcs.py
+PCS format is described here http://aclib.net/cssc2014/pcs-format.pdf
 
-Example #1 -- starting point is a whole set of CNF variables, picosat solver, time limit 100 seconds
+Example 1 - starting point is a whole set of CNF variables, picosat961 solver, time limit 100 seconds, just find a backdoor
+
 ./alias_ls -cnf=../test/sgen6-1200-5-1.cnf -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=100
 
-Example #2 -- starting point is a whole set of CNF variables, glucose4 solver, time limit 3600 seconds, solve a given instance using a backdoor
+Example 2 - starting point is a whole set of CNF variables, picosat961 solver, time limit 10000 seconds, solve a given instance using a found backdoor
 
-./alias_ls -cnf=../test/sgen6-1200-5-1.cnf -solver=genipainterval-glucose4 -script=ALIAS.py -cpu-lim=3600 --solve
+./alias_ls -cnf=../test/sgen6-1200-5-1.cnf -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=10000 --solve
 
-Example #3 - starting point is the set of first 72 variables, glucose4 solver, time limit 100 seconds
+Example 3 - starting point is a SUPBS (the first 72 variables), picosat961 solver, time limit 10000 seconds, solve a given instance using a found backdoor
 
-./alias_ls -cnf=../test/ASG_72_keystream76_0.cnf -pcs=../test/first72vars.pcs -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=100
+./alias_ls -cnf=../test/ASG_72_keystream76_0.cnf -pcs=../test/first72vars.pcs -solver=genipainterval-picosat961 -script=ALIAS.py -cpu-lim=10000 --solve

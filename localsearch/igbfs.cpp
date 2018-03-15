@@ -204,7 +204,8 @@ void igbfs::GBFS(const point start_point)
 			checked_points.push_back(cur_point);
 
 			if (cur_point.estimation <= 0) {
-				cout << "skip point with estimation " << cur_point.estimation << endl;
+				if (verbosity > 0)
+					cout << "estimation for a point is worse than the current record, interrupt calculations" << endl;
 				interrupted_points_count++;
 				if (is_jump_mode) {
 					backJump();
