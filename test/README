@@ -1,2 +1,6 @@
-challenge-105.cnf is described in the paper Van Gelder, A., Spence, I.: Zero-one designs produce small hard SAT instances. In: SAT
-2010. LNCS, vol. 6175, pp. 388-397 (2010).
+SAT instances ASG_72_keystream76_0.cnf and ASG_96_len112_0.cnf were taken from the paper
+Zaikin, O., Kochemazov, S.: An improved SAT-based guess-and-determine attack on the alternating step generator. In: ISC 2017. LNCS, vol. 10599, pp. 21-38 (2017).
+Each of them has a small SUPBS: 72 variables for ASG_72_keystream76_0.cnf, and 96 variables for ASG_96_len112_0.cnf
+
+sgen6-1200-5-1.cnf is a crafted instance taken from SAT Competition 2014
+http://satcompetition.org/2014/files/sc14-crafted.tar
