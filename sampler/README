@@ -11,10 +11,10 @@ LICENSE
 ================================================================================
 BUILDING: (release version: without assertions, statically linked, etc)
 
-export MROOT=<minisat-dir>              (or setenv in cshell)
-cd { core | simp }
-gmake rs
-cp minisat_static <install-dir>/minisat
+export MROOT=<sampler-dir>              (or setenv in cshell)
+cd ./core 
+make rs
+cp sampler_static <install-dir>/sampler
 
 ================================================================================
 
@@ -22,14 +22,26 @@ The Sampler is based on the COMiniSatPS (https://cs.nyu.edu/~chanseok/cominisatp
 which in turn is based on Minisat 2.2.(http://minisat.se/). The choice is mainly motivated by
 the fact that it is easier to build out of the box (from our point of view).
 
-The role of sampler is to generate random samples. In particular, it should filter assumptions 
+Strictly speaking, while it is possible to use Sampler as a standalone application, it is 
+highly advisable to leave the interaction with Sampler to ALIAS.py, since it is not designed
+to be human-friendly.
+
+The role of Sampler is to generate random samples. In particular, it filters assumptions 
 in such a way that only nontrivial assumptions are given to an employed incremental solver.
+Here by TRIVIAL assumptions we mean the assumptions that lead to derivation of "UNSAT"
+without a single decision. They are easily detected by the MINISAT engine stripped-down 
+to the DPLL level. The filtration is aimed to spare time since launching external solver 
+on assumptions that are too easy seems wasteful (as invoking an external binary is
+quite time-consuming). The interaction of sampler with other parts of ALIAS is currently
+performed via files.
 
-Sampler takes as an input a .json file which specifiec the desired parameters of a random 
-sample. The sampler is NOT designed to be used manualy, since it is launched by alias_estimate and 
-alias_solve scripts.
+Sampler takes as an input a .json file which specifies the desired parameters of a random 
+sample. Usually, a random sample is formed by several diapasons. A diapason here is a 
+continious block of assumptions (with fixed ordering of backdoor variables) if viewed as 
+binary numbers (e.g. 0000, 0001, 0010,...,1111). The main reason why we  generate sample
+as several diapasons is to make use of incremental mode of solving.
 
-Nevertheless, to launch it one can use the following command:
+To launch sampler one can use the following command:
 ./sampler -sampling json_file cnf_name out_name
 
 cnf_name is the considered CNF.
@@ -47,10 +59,9 @@ An example of json_file is:
 
 "decomposition_set" contains a list of backdoor variables.
 "mode" specifies one of several modes used by sampler. They are invoked depending on the size of 
-random sample and the number of processes employed. Also, the alias_solve and alias_estimate 
-obviously employ different modes. For example, "manual_whole" means that the sampler should
+random sample and the number of processes employed. Also, during solving and estimation
+different modes are employed. For example, "manual_whole" means that the sampler should
 output the list of valid assumptions starting from the "diapason_start" and up to (excluding)
 "diapason_end".
-"block_size" specifies how many assumptions should be put into a single file.
-
-
+"block_size" specifies how many assumptions should be put into a single file. Interestingly,
+the value of this parameter can sometimes significantly influence the solving time.
