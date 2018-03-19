@@ -63,7 +63,7 @@ ALIAS.py estimating mode.
 
 Assume that we have some SAT instance C and backdoor B. We want to know, how 
 long will it take to solve C by decomposing it via all possible instantiations
-of variables from B (i.e. perform runtime estimation). It can be done my the 
+of variables from B (i.e. perform runtime estimation). It can be done by the 
 Monte Carlo method.
 
 Note that each instantiation of variables from B can be considered as a number
@@ -86,7 +86,6 @@ for solving instances produced by instantiating backdoor variables the SAT
 solvers that can process assumptions in an incremental way. However, in this
 case it would make sense if the assumptions would be somehow close to each 
 other for each batch to be fed to incremental SAT solver.
-
 
 This is exactly the reason why the Sampler application is needed. It constructs
 a random sample as follows: for each diapason out of {number_of_diapasons} it 
