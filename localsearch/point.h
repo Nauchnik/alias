@@ -4,6 +4,8 @@
 #define point_h
 
 #include <vector>
+#include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -26,7 +28,7 @@ public:
 	double estimation;
 	
 	unsigned weight();
-	void print(const vector<var> vars);
+	string getStr(const vector<var> vars);
 	
 	bool operator==(const point& p) const { return value == p.value; }
 };
@@ -38,10 +40,12 @@ inline unsigned point::weight() {
 	return result;
 }
 
-inline void point::print(const vector<var> vars) {
+inline string point::getStr(const vector<var> vars) {
+	stringstream sstream;
 	for (unsigned i = 0; i < value.size(); i++)
-		if (value[i]) cout << vars[i].value << " ";
-	cout << endl;
+		if (value[i]) sstream << vars[i].value << " ";
+	sstream << endl;
+	return sstream.str();
 }
 
 #endif

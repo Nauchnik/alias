@@ -1,0 +1,46 @@
+================================================================================
+DESCRIPTION
+
+Implementation of local search which traverses a search space in order to find a backdoor with low 
+runtime estimation for a given SAT instance.
+
+================================================================================
+REQUIRED PACKAGES
+
+g++ (version 5+), build-essential
+
+> sudo apt-get install g++ build-essential
+
+================================================================================
+HOW TO BUILD
+
+> make
+
+================================================================================
+HOW TO LAUNCH
+
+> ./alias_ls [options] <cnf-file> <result-output-file>
+
+By default alias_ls searches for a backdoor with good runtime estimation. It 
+can also solve a given instance if the paramater --solve is set. 
+A backdoor can be given by the parameter -backdoor.
+
+NB! Backdoors variables are numbered starting from 1.
+
+================================================================================
+EXAMPLES
+
+- Example 1 - starting point is a whole set of CNF variables, time limit 100 seconds,.
+find backdoor and stop
+
+> ./alias_ls ../test/sgen6-1200-5-1.cnf -solver=genipainterval-picosat961 -cpu-lim=100
+
+- Example 2 - starting point is a whole set of CNF variables time limit 10000 seconds,.
+find backdoor and use it to solve the SAT instance
+
+> ./alias_ls ../test/sgen6-1200-5-1.cnf -solver=genipainterval-picosat961 -cpu-lim=10000 --solve
+
+- Example 3 - starting point is a SUPBS (the first 72 variables), time limit 10000 seconds,.
+solve a given instance using a found backdoor
+
+> ./alias_ls ../test/ASG_72_keystream76_0.cnf -pcs=../test/first72vars.pcs -solver=genipainterval-picosat961 -cpu-lim=10000 --solve

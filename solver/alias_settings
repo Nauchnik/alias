@@ -9,7 +9,7 @@
         "cnf_filename": "",
         "working_directory": "",
         "use_all_cores": true,
-        "number_of_processes": 36,
+        "number_of_processes": -1,
         "block_size": 100,
         "maximum_number_of_files_total": 3600
     },

@@ -5,7 +5,7 @@ base_local_search::base_local_search() :
 	graph_file_name(""),
 	cnf_name(""),
 	solver_name(""),
-	alias_script_name(""),
+	alias_script_name("ALIAS.py"),
 	pcs_name(""),
 	cpu_cores(1),
 	cpu_lim(DEFAULT_TIME_LIMIT),
@@ -16,11 +16,15 @@ base_local_search::base_local_search() :
 	vars_decr_times(0),
 	is_solve(false),
 	jump_lim(DEFAULT_JUMP_LIM),
-	result_output_file(""),
+	result_output_name(""),
+	script_out_str(""),
+	backdoor_file_name(""),
 	verbosity(1)
 {
 	start_t = chrono::high_resolution_clock::now();
 	srand(time(NULL));
+	known_backdoor.value.resize(0);
+	global_record_point.value.resize(0);
 }
 
 void base_local_search::loadVars()
@@ -36,6 +40,30 @@ void base_local_search::loadVars()
 	}
 
 	cout << "search space variables number " << vars.size() << endl;
+}
+
+void base_local_search::loadBackdoor()
+{
+	if (backdoor_file_name != "") {
+		if (verbosity > 1)
+			cout << "loadBackdoor()" << endl;
+		ifstream ifile(backdoor_file_name);
+		stringstream sstream;
+		string str;
+		getline(ifile, str);
+		sstream << str;
+		int val;
+		known_backdoor.value.resize(vars.size());
+		for (auto x : known_backdoor.value)
+			x = false;
+		cout << "known backdoor : " << endl;
+		while (sstream >> val) {
+			cout << val << " ";
+			known_backdoor.value[val - 1] = true;
+		}
+		cout << endl;
+		ifile.close();
+	}
 }
 
 // Parse a dimacs CNF formula from a given file and
@@ -202,18 +230,25 @@ bool base_local_search::isEstTooLong() // for simple instances
 	return false;
 }
 
-void base_local_search::reportFinalEstimation()
+void base_local_search::reportResult()
 {
-	cout << "final point weight : " << global_record_point.weight() << endl;
-	cout << "final runtime estimation on 1 CPU core : " << global_record_point.estimation << endl;
-	cout << "final runtime estimation on " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << endl;
-	cout << "final backdoor : " << endl;
-	printGlobalRecordPoint();
-	cout << "total local search time " << timeFromStart() << endl;
+	stringstream sstream;
+	sstream << "Backdoor (numeration from 1):" << endl;
+	sstream << global_record_point.getStr(vars);
+	sstream << "Estimation for 1 CPU core : " << global_record_point.estimation << " seconds" << endl;
+	sstream << "Estimation for " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << " seconds" << endl;
+	if (is_solve) {
+		sstream << alias_script_name << " output on the found backdoor : " << endl;
+		sstream << script_out_str << endl;
+	}
+	sstream << "total wall time " << timeFromStart() << endl;
+	cout << sstream.str();
 	
-	cout << "skipped points : " << skipped_points_count << endl;
-	cout << "checked points : " << checked_points.size() << endl;
-	cout << "interrupted points : " << interrupted_points_count << endl;
+	if (result_output_name != "") {
+		ofstream ofile(result_output_name);
+		ofile << sstream.str();
+		ofile.close();
+	}
 }
 
 bool strPrefix(const string init_str, const string prefix, string &res_str)
@@ -231,9 +266,7 @@ void base_local_search::parseParams(const int argc, char *argv[])
 	for (int i = 1; i < argc; i++) {
 		string par_str = argv[i];
 		string res_str;
-		if (strPrefix(par_str, "-cnf=", res_str))
-			cnf_name = res_str;
-		else if (strPrefix(par_str, "-pcs=", res_str))
+		if (strPrefix(par_str, "-pcs=", res_str))
 			pcs_name = res_str;
 		else if (strPrefix(par_str, "-script=", res_str))
 			alias_script_name = res_str;
@@ -245,10 +278,14 @@ void base_local_search::parseParams(const int argc, char *argv[])
 			istringstream(res_str) >> jump_lim;
 		else if (strPrefix(par_str, "-verb=", res_str))
 			istringstream(res_str) >> verbosity;
+		else if (strPrefix(par_str, "-backdoor=", res_str))
+			istringstream(res_str) >> backdoor_file_name;
 		else if (par_str == "--solve")
 			is_solve = true;
-		else
-			result_output_file = par_str;
+		else if (cnf_name == "")
+			cnf_name = par_str;
+		else if (result_output_name == "")
+			result_output_name = par_str;
 	}
 	
 	cout << "cnf name " << cnf_name << endl;
@@ -259,13 +296,21 @@ void base_local_search::parseParams(const int argc, char *argv[])
 	cout << "jump lim " << jump_lim << endl;
 	cout << "is solve " << is_solve << endl;
 	cout << "verbosity " << verbosity << endl;
-	cout << "result_output_file " << result_output_file << endl;
+	cout << "result_output_name " << result_output_name << endl;
+	cout << "backdoor_file_name " << backdoor_file_name << endl;
+	
+	if (cnf_name == "") {
+		cerr << "cnf name is empty" << endl;
+		exit(-1);
+	}
 }
 
 void base_local_search::init()
 {
 	loadVars();
+	loadBackdoor();
 	setGraphFileName();
+	cpu_cores = getCpuCores();
 }
 
 void base_local_search::calculateEstimation(point &cur_point)
@@ -298,10 +343,11 @@ bool base_local_search::solveInstance()
 	if (isTimeExceeded() || (!is_solve))
 		return false;
 
-	cout << "solve an instance using a record point" << endl;
+	cout << "solve the instance using a record point" << endl;
 
 	wall_time_solving = cpu_lim - timeFromStart();
-	cout << "wall_time_solving " << wall_time_solving << endl;
+	if (verbosity > 0)
+		cout << "solving wall time " << wall_time_solving << endl;
 	
 	if (wall_time_solving < (global_record_point.estimation / cpu_cores) / 10) {
 		cout << "*** stop, wall_time_solving < (global_record_point.estimation / cpu_cores) / 10)" << endl;
@@ -315,11 +361,12 @@ bool base_local_search::solveInstance()
 
 	string command_str = getScriptCommand(SOLVE, global_record_point);
 
-	cout << "command_str : " << command_str << endl;
-	string out_str = getCmdOutput(command_str.c_str());
-	cout << out_str << endl;
-	cout << "solving done" << endl;
-
+	if (verbosity > 1)
+		cout << "command_str : " << command_str << endl;
+	script_out_str = getCmdOutput(command_str.c_str());
+	cout << endl << alias_script_name << " output on the found backdoor : " << endl;
+	cout << script_out_str << endl;
+	
 	return true;
 }
 
@@ -334,6 +381,10 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 	}
 	else
 		command_str += " -e";
+
+	sstream << cpu_cores;
+	command_str += " -number_of_processes " + sstream.str();
+	sstream.str(""); sstream.clear();
 	command_str += " -cnf " + cnf_name + " -solver " + solver_name;
 
 	if (!is_jump_mode) {
@@ -353,17 +404,20 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 
 void base_local_search::printGlobalRecordPoint()
 {
-	global_record_point.print(vars);
-	if (result_output_file != "") {
-		ofstream ofile(result_output_file);
-		ofile << "Estimation for 1 CPU core : " << global_record_point.estimation << " seconds" << endl;
-		ofile << "Estimation for " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << " seconds" << endl;
-		ofile << "Backdoor (numeration from 1):" << endl;
-		for (unsigned i = 0; i < global_record_point.value.size(); i++) {
-			if (global_record_point.value[i])
-				ofile << " " << i + 1;
-		}
-		ofile << endl;
-		ofile.close();
-	}
+	cout << global_record_point.getStr(vars);
+}
+
+void base_local_search::estimateKnownBackdoor()
+{
+	if (verbosity > 1)
+		cout << "estimateKnownBackdoor()" << endl;
+	calculateEstimation(known_backdoor);
+	global_record_point = known_backdoor;
+}
+
+bool base_local_search::isKnownBackdoor()
+{
+	if (verbosity > 1)
+		cout << "isKnownBackdoor()" << endl;
+	return (known_backdoor.value.size() > 0) ? true : false;
 }

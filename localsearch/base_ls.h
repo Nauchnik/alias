@@ -29,6 +29,35 @@ class base_local_search
 {
 public:
 	base_local_search();
+
+	int getCpuCores();
+	string getCmdOutput(const char* cmd);
+	double timeFromStart();
+	bool isTimeExceeded();
+
+	void parseParams(const int argc, char *argv[]);
+	void init();
+	void loadVars();
+	void loadBackdoor();
+	vector<var> getAllCnfVars(const string filename);
+	vector<var> readVarsFromPcs(string pcs_name);
+	bool isEstTooLong();
+	void writeToGraphFile(const string str);
+	void setGraphFileName();
+	bool solveInstance();
+	void reportResult();
+	void calculateEstimation(point &cur_point);
+	string getScriptCommand(const int mode, const point cur_point);
+	void estimateKnownBackdoor();
+	bool isKnownBackdoor();
+	
+	inline bool isChecked(const point cur_point) {
+		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());
+	}
+
+	void printGlobalRecordPoint();
+
+protected:
 	vector<var> vars;
 	vector<point> checked_points;
 	unsigned skipped_points_count;
@@ -45,38 +74,17 @@ public:
 	double cpu_lim;
 	unsigned jump_lim;
 	double wall_time_solving;
+	int verbosity;
 	unsigned jump_step;
 	point before_jump_point;
 	bool is_jump_mode;
 	unsigned vars_decr_times;
 	chrono::high_resolution_clock::time_point start_t;
 	bool is_solve;
-	string result_output_file;
-	int verbosity;
-	
-	int getCpuCores();
-	string getCmdOutput(const char* cmd);
-	double timeFromStart();
-	bool isTimeExceeded();
-
-	void parseParams(const int argc, char *argv[]);
-	void init();
-	void loadVars();
-	vector<var> getAllCnfVars(const string filename);
-	vector<var> readVarsFromPcs(string pcs_name);
-	bool isEstTooLong();
-	void writeToGraphFile(const string str);
-	void setGraphFileName();
-	bool solveInstance();
-	void reportFinalEstimation();
-	void calculateEstimation(point &cur_point);
-	string getScriptCommand(const int mode, const point cur_point);
-	
-	inline bool isChecked(const point cur_point) {
-		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());
-	}
-
-	void printGlobalRecordPoint();
+	string result_output_name;
+	string script_out_str;
+	string backdoor_file_name;
+	point known_backdoor;
 };
 
 #endif

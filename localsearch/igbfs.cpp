@@ -28,7 +28,7 @@ void igbfs::backJump() {
 	vars_decr_times = 0;
 	local_record_point = before_jump_point;
 	cout << "back to the point with weight " << local_record_point.weight() << " : " << endl;
-	before_jump_point.print(vars);
+	cout << before_jump_point.getStr(vars);
 	is_jump_mode = false; // jump only once
 	cout << "* is_jump_mode " << is_jump_mode << endl;
 }
@@ -69,7 +69,7 @@ point igbfs::permutateRecordPoint()
 	cout << endl << "get first " << ADD_VARS_RECORDS << " of them" << endl;
 	add_records_vars.resize(ADD_VARS_RECORDS);
 	// get vars with low records to exclude
-	sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByRecords);
+	/*sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByRecords);
 	cout << "current global record sorted by records : " << endl;
 	for (auto x : global_record_vars_vec)
 		cout << x.global_records << " ";
@@ -79,7 +79,7 @@ point igbfs::permutateRecordPoint()
 	sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByRecords);
 	cout << "current global record after remove, sorted by records : " << endl;
 	for (auto x : global_record_vars_vec)
-		cout << x.global_records << " ";
+		cout << x.global_records << " ";*/
 	// add vars
 	cout << endl << "add additional vars" << endl;
 	for (auto x : add_calc_vars)
@@ -102,8 +102,8 @@ point igbfs::permutateRecordPoint()
 	for (auto x : mod_point.value)
 		cout << x << " ";
 	cout << endl;
-
-	if (mod_point.weight() - 10 != global_record_point.weight()) {
+	
+	if (mod_point.weight() - ADD_VARS_CALC - ADD_VARS_RECORDS != global_record_point.weight()) {
 		cerr << "mod_point weight " << mod_point.weight() << endl;
 		cerr << " global_record_point weight " << global_record_point.weight() << endl;
 		exit(-1);
@@ -114,7 +114,7 @@ point igbfs::permutateRecordPoint()
 	}
 
 	cout << "modified point with weight " << mod_point.weight() << " : " << endl;
-	mod_point.print(vars);
+	cout << mod_point.getStr(vars);
 	return mod_point;
 }
 
@@ -139,7 +139,7 @@ void igbfs::iteratedGBFS()
 	for (auto x : start_point.value)
 		x = true;
 	cout << "start point : " << endl;
-	start_point.print(vars);
+	cout << start_point.getStr(vars);
 
 	unsigned jumps_count = 0;
 	global_record_point = start_point;
@@ -168,8 +168,17 @@ void igbfs::iteratedGBFS()
 	sstream << "--- start solving, time " << timeFromStart();
 	writeToGraphFile(sstream.str());
 	sstream.str(""); sstream.clear();
-	
-	reportFinalEstimation();
+
+	cout << "final point weight : " << global_record_point.weight() << endl;
+	cout << "final runtime estimation on 1 CPU core : " << global_record_point.estimation << endl;
+	cout << "final runtime estimation on " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << endl;
+	cout << "final backdoor : " << endl;
+	printGlobalRecordPoint();
+	cout << "total local search time " << timeFromStart() << endl;
+
+	cout << "skipped points : " << skipped_points_count << endl;
+	cout << "checked points : " << checked_points.size() << endl;
+	cout << "interrupted points : " << interrupted_points_count << endl;
 }
 
 void igbfs::GBFS(const point start_point)
@@ -253,7 +262,8 @@ void igbfs::updateLocalRecord(point cur_point)
 			    "record backdoor with " << global_record_point.weight() << " vars | " <<
 			    " estimation " << global_record_point.estimation / cpu_cores << " sec on " << 
 			    cpu_cores << " CPU cores" << endl;
-		printGlobalRecordPoint();
+		if (verbosity > 1)
+			printGlobalRecordPoint();
 		stringstream sstream;
 		//"vars est-1-core est-" << cpu_cores << "-cores elapsed" << endl;
 		sstream << global_record_point.weight() << " " << global_record_point.estimation << " " <<
@@ -324,8 +334,16 @@ point igbfs::jumpPoint(point cur_point)
 	if (verbosity > 1) {
 		cout << "jump_step " << jump_step << endl;
 		cout << "jump point weight " << jump_point.weight() << endl;
-		jump_point.print(vars);
+		cout << jump_point.getStr(vars);
 	}
 	
 	return jump_point;
+}
+
+void igbfs::processBackdoor()
+{
+	if (!isKnownBackdoor())
+		iteratedGBFS();
+	else if (!is_solve)
+		estimateKnownBackdoor();
 }
