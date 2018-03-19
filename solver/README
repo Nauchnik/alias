@@ -1,0 +1,78 @@
+alias_solve and alias_estimate were merged into a single script because they had a lot of
+shared functionality which was unnecessarily duplicated.
+
+ALIAS.py is normally launched by alias_ls.
+It also can be launched manually if one wants to have more control over runtime estimation procedure or solving procedure, i.e. to be able to manually adjust sampling parameters, etc.
+
+ALIAS.py can be launched either in estimating mode or solving mode. Let us glance first at ALIAS.py settings and then at
+both modes in more detail.
+
+================================================================================================================================
+ALIAS settings contain entries from three categories: general settings, sampling settings and solving settings.
+General settings apply to both modes.
+They include:
+  -path to solver binary:
+     "solver": "genipainterval-glucose4",
+  -solver settings (this is mostly for being able to work with arbitrary solver binaries, which is not yet implemented)
+        "solver_settings": {
+            "satisfiying_assignment_string": "formula is satisfiable",
+            "solver_arguments": {}
+        },
+  - path to sampler binary
+        "sampler_filename": "sampler_static",
+  - path to CNF file
+        "cnf_filename": "",
+  - path specifying working directory
+        "working_directory": "",
+  - parameters specifying how many processes should be employed (usually, the number of logical cores)
+        "use_all_cores": true,
+        "number_of_processes": 36,
+  - block size is the number of different assumptions per file. This parameter can influence the effectiveness of solving quite significantly.
+        "block_size": 100,
+  - maximum number of files that can be simultaneously created in working directory.
+        "maximum_number_of_files_total": 3600
+
+The sampling settings include:
+   - whether to use sampler or nor (by default true, another alternative is not yet implemented)
+        "use_sampler": true,
+   - several parameters that specify the size and structural properties of a random sample.
+        "number_of_diapasons": 100,
+        "diapason_size": 10000,
+        "number_of_assumptions": 100,
+        "multiple_diapasons": true,
+   - maximum time limit per one assumption
+        "time_limit_per_task": 100,
+        
+The solving settings contain only wall time limit and output specification        
+
+ALIAS.py can also initialize the majority of settings via command line arguments.
+
+================================================================================================================================
+ALIAS.py estimating mode.
+
+Assume that we have some SAT instance C and backdoor B. We want to know, how long will it take to solve C by decomposing it via all possible instantiations of variables from B (i.e. perform runtime estimation). It can be done my the Monte Carlo method.
+
+Note that each instantiation of variables from B can be considered as a number of assumptions for a SAT solver.
+
+So to construct a runtime estimation we:
+1. Construct a random sample by randomly choosing instantiations of variables from B.
+2. Launch SAT solver on C with every set of assumptions generated on step 1.
+3. Compute the average runtime of our SAT solver on instances from step 1, and scale it to the size of the set of
+all possible instantiations of variables from B (i.e. 2^|B|).
+
+The value obtained at step 3 is the runtime estimation we sought.
+
+However, the devil is in the details.
+First, there are many formally correct ways to construct a random sample. Some of them are more convenient than the others.
+For example, it is natural to use for solving instances produced by instantiating backdoor variables the SAT solvers that
+can process assumptions in an incremental way. However, in this case it would make sense if the assumptions would be somehow close to each other for each batch to be fed to incremental SAT solver.
+
+
+This is exactly the reason why the Sampler application is needed. It constructs a random sample as follows: for each diapason out of {number_of_diapasons} it first randomly generates the diapason_start. ALIAS.py looks at all possible instantiations of backdoor variables as on binary numbers from 0 to 2^|B|-1, thus we assume that diapason_start is an arbitrary binary number. Then it launches a simple DPLL at diapason_start and traverses the search space (in the direction corresponding to increasing the corresponding binary number). For each possible assumption it checks whether it is falsified on the propagation stage (i.e. without a single decision). It stops as soon as one of the two events take place: either the distance between current point and diapason_start exceeds {diapason_size} or if there were already found {number_of_assumptions} perspective assumptions. It means, that the size of random sample is equal to {number_of_diapasons} * {number_of_assumptions}. If the {diapason_size} is exceeded while {number_of_assumptions} of assumptions have not yet been generated - it means that instantiating backdoor variables very often leads to too simple problems and requires additional processing.
+
+For each diapason Sampler outputs the collected assumptions split into files each with {block_size} assumptions. These files are then given as an input to incremental SAT solver. The script measures the time it takes SAT solver to process each diapason and uses it to compute the resulting runtime estimation. It can interrupt the SAT solver when the computations take too long (the timeout is computed based on -bkv command line parameter value and {time_limit_per_task} parameter value). If the processing of one of the diapasons was interrupted - all the remaining files in queue are not processed and the script outputs "-1" as runtime estimation.
+
+================================================================================================================================
+ALIAS.py solving mode
+
+In the solving mode ALIAS.py looks at all possible instantiations of backdoor variables as on binary numbers from 0 to 2^|B|-1. This range is split into workunits, each workunit a range from number R1 to number R2, 0<=R1<R2<=2^|B|-1. Each workunit then is given to a separate process. Each process generates assumptions starting from R1 and ending at R2. Assumptions are split into blocks of size {block_size} and solved by incremental solver. If the satisfying assignment is found, then the processing of all other workunits is interrupted.
