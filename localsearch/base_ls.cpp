@@ -282,6 +282,8 @@ void base_local_search::parseParams(const int argc, char *argv[])
 			istringstream(res_str) >> backdoor_file_name;
 		else if (par_str == "--solve")
 			is_solve = true;
+		else if (par_str == "--nojump")
+			is_jump_mode = false;
 		else if (cnf_name == "")
 			cnf_name = par_str;
 		else if (result_output_name == "")
@@ -293,6 +295,7 @@ void base_local_search::parseParams(const int argc, char *argv[])
 	cout << "solver name " << solver_name << endl;
 	cout << "alias script name " << alias_script_name << endl;
 	cout << "cpu lim " << cpu_lim << endl;
+	cout << "is_jump_mode " << is_jump_mode << endl;
 	cout << "jump lim " << jump_lim << endl;
 	cout << "is solve " << is_solve << endl;
 	cout << "verbosity " << verbosity << endl;
