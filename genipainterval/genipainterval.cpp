@@ -24,27 +24,30 @@ double cpuTime();
 
 int main(int argc, char** argv) 
 {
-	cout << "[genipainterval] USAGE: ./prog dimacs.cnf assumptions [verbosity]" << endl;
-	if (argc < 3)
+	if (argc < 3) {
+		cout << "[genipainterval] USAGE: ./prog dimacs.cnf assumptions [verbosity]" << endl;
 		exit(-1);
+	}
 
 	string filename = argv[1];
 	vector<vector<int> > clauses;
 	int vars = 0;
 	loadFormula(filename, clauses, vars); // load clauses from a given CNF
-	cout << "got " << clauses.size() << " clauses from the file " << filename << endl;
 	
 	filename = argv[2];
 	vector<vector<int> > assumptions;
 	loadFormula(filename, assumptions, vars); // load assumptions from a given file
-	cout << "got " << assumptions.size() << " assumptions from the file " << filename << endl;
-
-	cout << "got " << vars << " variables" << endl;
 	
 	int verbosity = 0;
 	if ( argc > 3 )
 		verbosity = atoi(argv[3]);
 	
+	if (verbosity > 0) {
+	    cout << "got " << clauses.size() << " clauses from the file " << filename << endl;
+	    cout << "got " << assumptions.size() << " assumptions from the file " << filename << endl;
+	    cout << "got " << vars << " variables" << endl;
+	}
+
 	if (verbosity > 0)
 		cout << "solver : " << ipasir_signature() << endl;
 
@@ -77,16 +80,17 @@ int main(int argc, char** argv)
 			if (verbosity > 0)
 			    cout << assumption[j] << " ";
 		}
-		cout << endl;
-		if (verbosity > 0)
+		if (verbosity > 0) {
+		    cout << endl;
 		    cout << "assume done" << endl;
-		if (verbosity > 0)
-			cout << "before ipasir_solve() # " << i << endl;
+		    cout << "before ipasir_solve() # " << i << endl;
+		}
 		double cur_time = cpuTime();
 		res = ipasir_solve(solver);
 		cur_time = cpuTime() - cur_time;
 		sum_time += cur_time;
-		cout << "sum_time " << sum_time << endl;
+		if (verbosity >0)
+		    cout << "sum_time " << sum_time << endl;
 		if (res == 10)
 		    break;
 		if (verbosity > 0)
@@ -130,7 +134,7 @@ void loadFormula(string filename, vector<vector<int> > &clauses, int &vars)
 		stringstream sstream;
 		sstream << str;
 		if (str[0] == 'p') {
-			cout << "try to get vars from string " << str << endl;
+			//cout << "try to get vars from string " << str << endl;
 			sstream >> str >> str >> vars;
 			continue;
 		}
