@@ -169,13 +169,9 @@ void igbfs::iteratedGBFS()
 	writeToGraphFile(sstream.str());
 	sstream.str(""); sstream.clear();
 
-	cout << "final point weight : " << global_record_point.weight() << endl;
-	cout << "final runtime estimation on 1 CPU core : " << global_record_point.estimation << endl;
-	cout << "final runtime estimation on " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << endl;
-	cout << "final backdoor : " << endl;
 	printGlobalRecordPoint();
-	cout << "total local search time " << timeFromStart() << endl;
 
+	cout << "total local search time " << timeFromStart() << endl;
 	cout << "skipped points : " << skipped_points_count << endl;
 	cout << "checked points : " << checked_points.size() << endl;
 	cout << "interrupted points : " << interrupted_points_count << endl;
@@ -344,6 +340,9 @@ void igbfs::processBackdoor()
 {
 	if (!isKnownBackdoor())
 		iteratedGBFS();
-	else if (!is_solve)
-		estimateKnownBackdoor();
+	else {
+		calculateEstimation(known_backdoor);
+		global_record_point = known_backdoor;
+		printGlobalRecordPoint();
+	}
 }

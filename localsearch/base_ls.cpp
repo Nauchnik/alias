@@ -407,15 +407,11 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 
 void base_local_search::printGlobalRecordPoint()
 {
+	cout << "final point weight : " << global_record_point.weight() << endl;
+	cout << "final runtime estimation on 1 CPU core : " << global_record_point.estimation << endl;
+	cout << "final runtime estimation on " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << endl;
+	cout << "final backdoor : " << endl;
 	cout << global_record_point.getStr(vars);
-}
-
-void base_local_search::estimateKnownBackdoor()
-{
-	if (verbosity > 1)
-		cout << "estimateKnownBackdoor()" << endl;
-	calculateEstimation(known_backdoor);
-	global_record_point = known_backdoor;
 }
 
 bool base_local_search::isKnownBackdoor()

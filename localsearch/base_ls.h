@@ -48,7 +48,6 @@ public:
 	void reportResult();
 	void calculateEstimation(point &cur_point);
 	string getScriptCommand(const int mode, const point cur_point);
-	void estimateKnownBackdoor();
 	bool isKnownBackdoor();
 	
 	inline bool isChecked(const point cur_point) {
