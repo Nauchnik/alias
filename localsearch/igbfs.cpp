@@ -4,6 +4,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
+#include <random>
 
 bool compareByCalculations(const var &a, const var &b)
 {
@@ -22,7 +23,7 @@ bool compareByVarValue(const var &a, const var &b)
 
 void igbfs::backJump() {
 	cout << "* backjumping" << endl;
-	local_record_point.estimation = 1e+308;
+	local_record_point.estimation = HUGE_VAL;
 	//cout << "* forget global record" << endl;
 	jump_step = INITIAL_JUMP_STEP;
 	vars_decr_times = 0;
@@ -143,7 +144,7 @@ void igbfs::iteratedGBFS()
 
 	unsigned jumps_count = 0;
 	global_record_point = start_point;
-	global_record_point.estimation = 1e+308;
+	global_record_point.estimation = HUGE_VAL;
 	stringstream sstream;
 	cpu_cores = getCpuCores();
 	sstream << "vars est-1-core est-" << cpu_cores << "-cores elapsed";
@@ -183,7 +184,7 @@ void igbfs::GBFS(const point start_point)
 	vars_decr_times = 0;
 	jump_step = INITIAL_JUMP_STEP;
 	local_record_point = start_point;
-	local_record_point.estimation = 1e+308;
+	local_record_point.estimation = HUGE_VAL;
 
 	if (verbosity > 1)
 		cout << "GBFS() start" << endl;
@@ -311,7 +312,7 @@ void igbfs::updateLocalRecord(point cur_point)
 
 point igbfs::jumpPoint(point cur_point)
 {
-	local_record_point.estimation = 1e+308;
+	local_record_point.estimation = HUGE_VAL;
 	//cout << "* forget global record" << endl;
 	before_jump_point = cur_point;
 	point jump_point = cur_point;
@@ -336,13 +337,71 @@ point igbfs::jumpPoint(point cur_point)
 	return jump_point;
 }
 
-void igbfs::processBackdoor()
+void igbfs::findBackdoor()
 {
-	if (!isKnownBackdoor())
+	if ((!isKnownBackdoor()) && (rand_from > 0)) {
+		randSearch();
+	}
+	else if (!isKnownBackdoor())
 		iteratedGBFS();
-	else {
+	else if (isKnownBackdoor()) {
 		calculateEstimation(known_backdoor);
 		global_record_point = known_backdoor;
 		printGlobalRecordPoint();
 	}
+}
+
+void igbfs::randSearch()
+{
+	cout << "randSearch()\n";
+	is_jump_mode = false;
+	unsigned total_points_count = rand_points * (rand_from - rand_to + 1);
+	cout << "total_points_count" << total_points_count << endl;
+	for (unsigned i=rand_to; i >= rand_from; i--) {
+		cout << "generate " << rand_points << " points of " << i << " vars\n";
+		for (unsigned j=0; j< rand_points; j++) {
+			point p = generateRandPoint(i);
+			calculateEstimation(p);
+			checked_points.push_back(p);
+			cout << "checked " << checked_points.size() << " points out of " << total_points_count << endl;
+			if (p.estimation < local_record_point.estimation)
+				updateLocalRecord(p);
+		}
+	}
+}
+
+point igbfs::generateRandPoint(const unsigned var_count)
+{
+	point p;
+	unsigned total_var_count = vars.size();
+	p.value.resize(total_var_count);
+	for (auto x : p.value)
+		x = false;
+
+	random_device rd;
+	mt19937 mt(rd());
+	uniform_int_distribution<unsigned> dist(0, total_var_count-1);
+	
+	vector<unsigned> rand_vec;
+	for (;;) {
+		unsigned val = dist(mt);
+		if (find(rand_vec.begin(), rand_vec.end(), val) == rand_vec.end())
+			rand_vec.push_back(val);
+		else
+			continue;
+		if (rand_vec.size() == var_count)
+			break;
+	}
+	
+	if (verbosity > 1) {
+		cout << "rand_vec.size() " << rand_vec.size() << endl;
+		for (auto x : rand_vec)
+			cout << x << " ";
+		cout << endl;
+	}
+
+	for (auto x : rand_vec)
+		p.value[x] = true;
+
+	return p;
 }

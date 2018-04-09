@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	igbfs igbfs_obj;
 	igbfs_obj.parseParams(argc, argv);
 	igbfs_obj.init();
-	igbfs_obj.processBackdoor();
+	igbfs_obj.findBackdoor();
 	igbfs_obj.solveInstance();
 	igbfs_obj.reportResult();
 	

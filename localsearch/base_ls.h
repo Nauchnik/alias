@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <iterator>
 #include <set>
+#include <cmath>
 
 #include "point.h"
 
@@ -84,6 +85,9 @@ protected:
 	string script_out_str;
 	string backdoor_file_name;
 	point known_backdoor;
+	unsigned rand_from;
+	unsigned rand_to;
+	unsigned rand_points;
 };
 
 #endif

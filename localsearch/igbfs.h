@@ -23,7 +23,9 @@ public:
 	void updateLocalRecord(point cur_point);
 	point jumpPoint(point cur_point);
 	void iteratedGBFS();
-	void processBackdoor();
+	void randSearch();
+	void findBackdoor();
+	point generateRandPoint(const unsigned var_count);
 };
 
 #endif

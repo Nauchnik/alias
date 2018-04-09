@@ -19,12 +19,16 @@ base_local_search::base_local_search() :
 	result_output_name(""),
 	script_out_str(""),
 	backdoor_file_name(""),
+	rand_from(0),
+	rand_to(0),
+	rand_points(0),
 	verbosity(1)
 {
 	start_t = chrono::high_resolution_clock::now();
 	srand(time(NULL));
 	known_backdoor.value.resize(0);
 	global_record_point.value.resize(0);
+	local_record_point.estimation = HUGE_VAL;
 }
 
 void base_local_search::loadVars()
@@ -280,6 +284,12 @@ void base_local_search::parseParams(const int argc, char *argv[])
 			istringstream(res_str) >> verbosity;
 		else if (strPrefix(par_str, "-backdoor=", res_str))
 			istringstream(res_str) >> backdoor_file_name;
+		else if (strPrefix(par_str, "-rand-from=", res_str))
+			istringstream(res_str) >> rand_from;
+		else if (strPrefix(par_str, "-rand-to=", res_str))
+			istringstream(res_str) >> rand_to;
+		else if (strPrefix(par_str, "-rand-points=", res_str))
+			istringstream(res_str) >> rand_points;
 		else if (par_str == "--solve")
 			is_solve = true;
 		else if (par_str == "--nojump")
@@ -289,6 +299,13 @@ void base_local_search::parseParams(const int argc, char *argv[])
 		else if (result_output_name == "")
 			result_output_name = par_str;
 	}
+
+	if ((rand_from > 0) && (!rand_to))
+		rand_to = rand_from;
+	if ((rand_to > 0) && (!rand_from))
+		rand_from = rand_to;
+	if ((rand_to > 0) && (!rand_points))
+		rand_points = 100;
 	
 	cout << "cnf name " << cnf_name << endl;
 	cout << "pcs name " << pcs_name << endl;
@@ -301,6 +318,9 @@ void base_local_search::parseParams(const int argc, char *argv[])
 	cout << "verbosity " << verbosity << endl;
 	cout << "result_output_name " << result_output_name << endl;
 	cout << "backdoor_file_name " << backdoor_file_name << endl;
+	cout << "rand_to " << rand_to << endl;
+	cout << "rand_from " << rand_from << endl;
+	cout << "rand_points " << rand_points << endl;
 	
 	if (cnf_name == "") {
 		cerr << "cnf name is empty" << endl;
