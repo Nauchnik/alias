@@ -29,6 +29,7 @@ base_local_search::base_local_search() :
 	known_backdoor.value.resize(0);
 	global_record_point.value.resize(0);
 	local_record_point.estimation = HUGE_VAL;
+	global_record_point.estimation = HUGE_VAL;
 }
 
 void base_local_search::loadVars()

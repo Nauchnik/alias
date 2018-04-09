@@ -355,8 +355,8 @@ void igbfs::randSearch()
 {
 	cout << "randSearch()\n";
 	is_jump_mode = false;
-	unsigned total_points_count = rand_points * (rand_from - rand_to + 1);
-	cout << "total_points_count" << total_points_count << endl;
+	unsigned total_points_count = rand_points * (rand_to - rand_from + 1);
+	cout << "total_points_count " << total_points_count << endl;
 	for (unsigned i=rand_to; i >= rand_from; i--) {
 		cout << "generate " << rand_points << " points of " << i << " vars\n";
 		for (unsigned j=0; j< rand_points; j++) {
@@ -364,7 +364,9 @@ void igbfs::randSearch()
 			calculateEstimation(p);
 			checked_points.push_back(p);
 			cout << "checked " << checked_points.size() << " points out of " << total_points_count << endl;
-			if (p.estimation < local_record_point.estimation)
+			if (p.estimation <= 0)
+				continue;
+			if (p.estimation < global_record_point.estimation)
 				updateLocalRecord(p);
 		}
 	}
