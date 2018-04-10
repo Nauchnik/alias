@@ -162,13 +162,11 @@ void igbfs::iteratedGBFS()
 		jumps_count++;
 		if (isTimeExceeded() || isEstTooLong() || (jumps_count > jump_lim)) {
 			cout << "*** interrupt the search" << endl;
+			writeToGraphFile("--- interrupt\n");
 			break;
 		}
 		start_point = permutateRecordPoint();
 	}
-	sstream << "--- start solving, time " << timeFromStart();
-	writeToGraphFile(sstream.str());
-	sstream.str(""); sstream.clear();
 
 	printGlobalRecordPoint();
 
@@ -189,6 +187,7 @@ void igbfs::GBFS(const point start_point)
 	if (verbosity > 1)
 		cout << "GBFS() start" << endl;
 	
+	bool is_break = false;
 	for (;;) {
 		is_record_updated = false;
 		vector<unsigned> changing_vars;
@@ -198,8 +197,10 @@ void igbfs::GBFS(const point start_point)
 		int changing_vars_count = changing_vars.size();
 		//cout << "new start point " << endl;
 		for (int i = -1; i < changing_vars_count; i++) { // i == -1 is required to check a point itself
-			if (isTimeExceeded() || isEstTooLong())
+			if (isTimeExceeded() || isEstTooLong()) {
+				is_break = true;
 				break; // if time is up, then stop GBFS
+			}
 			point cur_point = local_record_point;
 			if (i >= 0)
 				cur_point.value[changing_vars[i]] = local_record_point.value[changing_vars[i]] ? false : true;
@@ -236,7 +237,7 @@ void igbfs::GBFS(const point start_point)
 			}
 		}
 		
-		if (isTimeExceeded() || isEstTooLong())
+		if (is_break)
 			break; // if time is up, then stop GBFS
 
 		if (!is_record_updated) { // if a local minimum has been found, then stop GBFS
@@ -357,10 +358,21 @@ void igbfs::randSearch()
 	is_jump_mode = false;
 	unsigned total_points_count = rand_points * (rand_to - rand_from + 1);
 	cout << "total_points_count " << total_points_count << endl;
+
+	bool is_break = false; 
 	for (unsigned i=rand_to; i >= rand_from; i--) {
 		cout << "generate " << rand_points << " points of " << i << " vars\n";
 		for (unsigned j=0; j< rand_points; j++) {
-			point p = generateRandPoint(i);
+			if (isTimeExceeded() || isEstTooLong()) {
+				cout << "*** interrupt the search" << endl;
+				writeToGraphFile("--- interrupt\n");
+				is_break = true;
+				break;
+			}
+			point p; 
+			do {
+				p = generateRandPoint(i);
+			} while (isChecked(p));
 			calculateEstimation(p);
 			checked_points.push_back(p);
 			cout << "checked " << checked_points.size() << " points out of " << total_points_count << endl;
@@ -369,6 +381,8 @@ void igbfs::randSearch()
 			if (p.estimation < global_record_point.estimation)
 				updateLocalRecord(p);
 		}
+		if (is_break)
+			break;
 	}
 }
 

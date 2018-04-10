@@ -369,6 +369,11 @@ bool base_local_search::solveInstance()
 
 	cout << "solve the instance using a record point" << endl;
 
+	stringstream sstream; 
+	sstream << "--- start solving, time " << timeFromStart();
+	writeToGraphFile(sstream.str());
+	sstream.str(""); sstream.clear();
+
 	wall_time_solving = cpu_lim - timeFromStart();
 	if (verbosity > 0)
 		cout << "solving wall time " << wall_time_solving << endl;
