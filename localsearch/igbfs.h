@@ -5,8 +5,6 @@
 
 #include "base_ls.h"
 
-using namespace std;
-
 const unsigned INITIAL_JUMP_STEP = 10;
 const unsigned MIN_VARS_JUMP_FROM = 30;
 const unsigned ADD_VARS_CALC = 4;
