@@ -260,7 +260,7 @@ void igbfs::updateLocalRecord(point cur_point)
 			    "record backdoor with " << global_record_point.weight() << " vars | " <<
 			    " estimation " << global_record_point.estimation / cpu_cores << " sec on " << 
 			    cpu_cores << " CPU cores" << endl;
-		if (verbosity > 1)
+		if (verbosity > 0)
 			printGlobalRecordPoint();
 		stringstream sstream;
 		//"vars est-1-core est-" << cpu_cores << "-cores elapsed" << endl;

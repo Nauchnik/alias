@@ -22,7 +22,7 @@ base_local_search::base_local_search() :
 	rand_from(0),
 	rand_to(0),
 	rand_points(0),
-	verbosity(1)
+	verbosity(0)
 {
 	start_t = chrono::high_resolution_clock::now();
 	srand(time(NULL));
