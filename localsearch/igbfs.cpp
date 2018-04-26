@@ -106,7 +106,7 @@ point igbfs::permutateRecordPoint()
 	
 	if (mod_point.weight() - ADD_VARS_CALC - ADD_VARS_RECORDS != global_record_point.weight()) {
 		cerr << "mod_point weight " << mod_point.weight() << endl;
-		cerr << " global_record_point weight " << global_record_point.weight() << endl;
+		cerr << "global_record_point weight " << global_record_point.weight() << endl;
 		exit(-1);
 	}
 	
@@ -191,8 +191,8 @@ void igbfs::GBFS(const point start_point)
 	for (;;) {
 		is_record_updated = false;
 		vector<unsigned> changing_vars;
-		for (unsigned j = 0; j < local_record_point.value.size(); j++)
-			changing_vars.push_back(j);
+		for (unsigned i = 0; i < local_record_point.value.size(); i++)
+			changing_vars.push_back(i);
 		random_shuffle(changing_vars.begin(), changing_vars.end());
 		int changing_vars_count = changing_vars.size();
 		//cout << "new start point " << endl;

@@ -43,7 +43,7 @@ void base_local_search::loadVars()
 		cerr << "*** search space is empty" << endl;
 		exit(-1);
 	}
-
+	
 	cout << "search space variables number " << vars.size() << endl;
 }
 
@@ -433,10 +433,10 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 
 void base_local_search::printGlobalRecordPoint()
 {
-	cout << "final point weight : " << global_record_point.weight() << endl;
-	cout << "final runtime estimation on 1 CPU core : " << global_record_point.estimation << endl;
-	cout << "final runtime estimation on " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << endl;
-	cout << "final backdoor : " << endl;
+	cout << "point weight : " << global_record_point.weight() << endl;
+	cout << "runtime estimation on 1 CPU core : " << global_record_point.estimation << endl;
+	cout << "runtime estimation on " << cpu_cores << " CPU cores : " << global_record_point.estimation / cpu_cores << endl;
+	cout << "backdoor : " << endl;
 	cout << global_record_point.getStr(vars);
 }
 
