@@ -4,7 +4,6 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
-#include <random>
 
 bool compareByCalculations(const var &a, const var &b)
 {
@@ -37,10 +36,10 @@ void igbfs::backJump() {
 point igbfs::permutateRecordPoint()
 {
 	cout << "* permutate record point" << endl;
-	vector<var> global_record_vars_vec, extra_vars;
+	vector<var> mod_vars, extra_vars;
 	for (unsigned i = 0; i < vars.size(); i++)
 		if (global_record_point.value[i])
-			global_record_vars_vec.push_back(vars[i]);
+			mod_vars.push_back(vars[i]);
 		else 
 			extra_vars.push_back(vars[i]);
 	// get additional vars with low calculations
@@ -69,6 +68,7 @@ point igbfs::permutateRecordPoint()
 		cout << x.global_records << " ";
 	cout << endl << "get first " << ADD_VARS_RECORDS << " of them" << endl;
 	add_records_vars.resize(ADD_VARS_RECORDS);
+
 	// get vars with low records to exclude
 	/*sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByRecords);
 	cout << "current global record sorted by records : " << endl;
@@ -81,15 +81,16 @@ point igbfs::permutateRecordPoint()
 	cout << "current global record after remove, sorted by records : " << endl;
 	for (auto x : global_record_vars_vec)
 		cout << x.global_records << " ";*/
+
 	// add vars
 	cout << endl << "add additional vars" << endl;
 	for (auto x : add_calc_vars)
-		global_record_vars_vec.push_back(x);
+		mod_vars.push_back(x);
 	for (auto x : add_records_vars)
-		global_record_vars_vec.push_back(x);
-	sort(global_record_vars_vec.begin(), global_record_vars_vec.end(), compareByVarValue);
-	cout << "new point : " << endl;
-	for (auto x : global_record_vars_vec)
+		mod_vars.push_back(x);
+	sort(mod_vars.begin(), mod_vars.end(), compareByVarValue);
+	cout << "vars of a new point : " << endl;
+	for (auto x : mod_vars)
 		cout << x.value << " ";
 	cout << endl;
 	
@@ -97,8 +98,10 @@ point igbfs::permutateRecordPoint()
 	mod_point.value.resize(vars.size());
 	for (unsigned i = 0; i < vars.size(); i++)
 		mod_point.value[i] = false;
-	for (unsigned i = 0; i < global_record_vars_vec.size(); i++)
-		mod_point.value[global_record_vars_vec[i].value - 1] = true;
+	for (unsigned i = 0; i < mod_vars.size(); i++) {
+		int pos = getVarPos(mod_vars[i].value);
+		mod_point.value[pos] = true;
+	}
 	cout << "mod_point : " << endl;
 	for (auto x : mod_point.value)
 		cout << x << " ";
@@ -111,25 +114,11 @@ point igbfs::permutateRecordPoint()
 	}
 	
 	while (isChecked(mod_point)) {
-		mod_point = randPermutateRecordPoint(); // get random point until an unchecked one will be found
+		mod_point = generateRandPoint(global_record_point.weight() + ADD_VARS_CALC + ADD_VARS_RECORDS); // get random point until an unchecked one will be found
 	}
 
 	cout << "modified point with weight " << mod_point.weight() << " : " << endl;
 	cout << mod_point.getStr(vars);
-	return mod_point;
-}
-
-point igbfs::randPermutateRecordPoint()
-{
-	cout << "permutateRecordPoint()" << endl;
-	point mod_point = global_record_point;
-	unsigned changed_vals = 0;
-	unsigned vars_to_change = mod_point.weight() / 3;
-	cout << "vars_to_change " << vars_to_change << endl;
-	for (unsigned i = 0; i < vars_to_change; i++) {
-		unsigned rand_ind = rand() % mod_point.value.size();
-		mod_point.value[i] = (mod_point.value[i] == true) ? false : true;
-	}
 	return mod_point;
 }
 
@@ -318,8 +307,11 @@ point igbfs::jumpPoint(point cur_point)
 	before_jump_point = cur_point;
 	point jump_point = cur_point;
 	unsigned changed_vals = 0;
+	mt19937 mt(rd());
+	unsigned cur_point_var_count = cur_point.value.size();
+	uniform_int_distribution<unsigned> dist(0, cur_point_var_count - 1);
 	for (;;) {
-		unsigned rand_ind = rand() % cur_point.value.size();
+		unsigned rand_ind = dist(mt);
 		if (jump_point.value[rand_ind]) {
 			jump_point.value[rand_ind] = false;
 			changed_vals++;
@@ -394,7 +386,6 @@ point igbfs::generateRandPoint(const unsigned var_count)
 	for (auto x : p.value)
 		x = false;
 
-	random_device rd;
 	mt19937 mt(rd());
 	uniform_int_distribution<unsigned> dist(0, total_var_count-1);
 	

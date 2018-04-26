@@ -14,7 +14,7 @@
 #include <iterator>
 #include <set>
 #include <cmath>
-
+#include <random>
 #include "point.h"
 
 const double DEFAULT_TIME_LIMIT = 3600;
@@ -50,7 +50,8 @@ public:
 	void calculateEstimation(point &cur_point);
 	string getScriptCommand(const int mode, const point cur_point);
 	bool isKnownBackdoor();
-	
+	int getVarPos(const int val);
+
 	inline bool isChecked(const point cur_point) {
 		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());
 	}
@@ -88,7 +89,23 @@ protected:
 	unsigned rand_from;
 	unsigned rand_to;
 	unsigned rand_points;
+	random_device rd;
 };
+
+inline int base_local_search::getVarPos(const int val)
+{
+	int pos = -1;
+	for (int i = 0; i < vars.size(); i++)
+		if (vars[i].value == val) {
+			pos = i;
+			break;
+		}
+	if (pos == -1) {
+		cerr << "pos == -1" << endl;
+		exit(-1);
+	}
+	return pos;
+}
 
 #endif
 

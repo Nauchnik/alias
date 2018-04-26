@@ -25,7 +25,6 @@ base_local_search::base_local_search() :
 	verbosity(0)
 {
 	start_t = chrono::high_resolution_clock::now();
-	srand(time(NULL));
 	known_backdoor.value.resize(0);
 	global_record_point.value.resize(0);
 	local_record_point.estimation = HUGE_VAL;
@@ -64,7 +63,8 @@ void base_local_search::loadBackdoor()
 		cout << "known backdoor : " << endl;
 		while (sstream >> val) {
 			cout << val << " ";
-			known_backdoor.value[val - 1] = true;
+			int pos = getVarPos(val);
+			known_backdoor.value[pos] = true;
 		}
 		cout << endl;
 		ifile.close();
