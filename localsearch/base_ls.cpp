@@ -378,8 +378,8 @@ bool base_local_search::solveInstance()
 	if (verbosity > 0)
 		cout << "solving wall time " << wall_time_solving << endl;
 	
-	if (wall_time_solving < (global_record_point.estimation / cpu_cores) / 10) {
-		cout << "*** stop, wall_time_solving < (global_record_point.estimation / cpu_cores) / 10)" << endl;
+	if (wall_time_solving < (global_record_point.estimation / cpu_cores) / 1000) {
+		cout << "*** stop, wall_time_solving < (global_record_point.estimation / cpu_cores) / 1000)" << endl;
 		return false;
 	}
 
