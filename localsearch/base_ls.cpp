@@ -38,6 +38,11 @@ void base_local_search::loadVars()
 	else
 		vars = getAllCnfVars(cnf_name);
 
+	if (vars.size() < MIN_VARS_JUMP) {
+		cout << "small search space, turn off the jump mode\n";
+		is_jump_mode = false;
+	}
+
 	if (!vars.size()) {
 		cerr << "*** search space is empty" << endl;
 		exit(-1);

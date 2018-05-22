@@ -20,6 +20,7 @@
 const double DEFAULT_TIME_LIMIT = 3600;
 const unsigned MAX_SOLVING_VARS = 35;
 const unsigned DEFAULT_JUMP_LIM = 3;
+const unsigned MIN_VARS_JUMP = 100;
 
 #define SOLVE 1
 #define ESTIMATE 2
