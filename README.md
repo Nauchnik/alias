@@ -44,7 +44,10 @@ REQUIRED PACKAGES
 
 python3.6, g++ (version 5+), build-essential, git, unzip
 
-> sudo apt-get install python3.6 g++ build-essential git unzip
+> sudo apt-get install g++ build-essential git unzip python3.6
+
+To install python3.6 on old Ubuntu versions (e.g., 14.04 or 16.04), please follow the instructions from this quide
+https://askubuntu.com/questions/865554/how-do-i-install-python-3-6-using-apt-get
 
 ================================================================================
 HOW TO BUILD
@@ -68,9 +71,9 @@ For instance, to build IPASIR-based glucose4, one should:
 
 - download the archive https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
 
-> unzip ./glucose-ipasir.zip -d ./glucose-ipasir/
+- > unzip ./glucose-ipasir.zip -d ./glucose-ipasir/
 
-> cp -rf ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
+- > cp -rf ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
 
 - rebuild alias, then genipainterval-glucose4 will appear in the bin folder
 
