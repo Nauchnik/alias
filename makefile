@@ -5,8 +5,6 @@ all:
 	chmod +x ./solver/ALIAS.py; cp ./solver/ALIAS.py ./bin/
 	cp ./solver/alias_settings ./bin/
 	chmod +x ./ipasir/scripts/mkall.sh; chmod +x ./ipasir/scripts/mkone.sh; chmod +x ./ipasir/scripts/mkcln.sh; 
-	rm -rf ./ipasir/sat/minisat220/
-	rm -rf ./ipasir/app/*
 	cp -rf ./genipainterval ./ipasir/app/ 
 	cd ipasir; make all; cp -rf ./bin/genipainterval* ../bin/
 clean: 
