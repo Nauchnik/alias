@@ -534,7 +534,7 @@ def ALIAS_estimate():
         runtime_estimation = (sum*d_set_size)/assumptions_total
     #SMAC hack
     if runtime_estimation==-1:
-        runtime_estimation = 1e100
+        runtime_estimation = 1e300
     
     logging.info(settings["estimout"].format(runtime_estimation))
     print (settings["estimout"].format(runtime_estimation))
