@@ -113,7 +113,13 @@ def parse_commandline():
                     settings["bkv"] = float(sys.argv[i+1])        
                 if sys.argv[i].startswith("-v"):                    
                     if sys.argv[i+1] == '1':                        
-                        settings["decomposition_set"].append( int ( sys.argv[i].replace('-v','') ) )            
+                        settings["decomposition_set"].append( int ( sys.argv[i].replace('-v','') ) )
+                if sys.argv[i].startswith("v") and sys.argv[i].find("=")!=-1:                    
+                    ind = sys.argv[i].find("=")
+                    t = sys.argv[i][-1:]
+                    varnumber = sys.argv[i][1:ind]
+                    if t == '1':                        
+                        settings["decomposition_set"].append( int (varnumber) )            
     #assimilate settings
     if settings["solver"] == "":
         print("Solver is not specified")
@@ -173,7 +179,7 @@ def parse_commandline():
     
     bkv_ttl = -1
     if settings["bkv"] > 0:
-        bkv_ttl = settings["bkv"]*10*settings["blocksize"]/(2**len(settings["decomposition_set"]))
+        bkv_ttl = settings["bkv"]*10/(2**len(settings["decomposition_set"]))
         if bkv_ttl < settings["maxtlpertask"]:
             settings["maxtlpertask"] = bkv_ttl
     
@@ -396,10 +402,9 @@ def mp_launch_solver (input, event):
     ttl = settings["maxtlpertask"]
 
     #scale ttl to number of tasks
-    #time_to_live = round(input[1] * ttl)
-    time_to_live = round (ttl)
+    time_to_live = round(input[1] * ttl)
     if time_to_live < 1: 
-        time_to_live = 1
+        time_to_live = 10
 
     if not event.is_set():
         t1 = time.perf_counter()
@@ -532,9 +537,6 @@ def ALIAS_estimate():
         sum = sum + v
     if runtime_estimation!=-1:
         runtime_estimation = (sum*d_set_size)/assumptions_total
-    #SMAC hack
-    if runtime_estimation==-1:
-        runtime_estimation = 1e300
     
     logging.info(settings["estimout"].format(runtime_estimation))
     print (settings["estimout"].format(runtime_estimation))
