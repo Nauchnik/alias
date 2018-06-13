@@ -25,6 +25,7 @@ def isInteger(s):
 
 settings = {}
 #general settings
+settings["verbosity"] = 1
 settings["solver"] = "genipainterval-glucose4"
 settings["satisfiying_assignment_string"] = "formula is satisfiable"
 settings["solverargs"] = {}
@@ -67,7 +68,8 @@ settings["interrupted"] = False
 
 def parse_commandline():
     if len(sys.argv) == 1:
-        printusage()
+        if settings["verbosity"]>0:
+            printusage()
         sys.exit()
     else: 
         if len(sys.argv) >= 2:         
@@ -77,10 +79,13 @@ def parse_commandline():
                 if sys.argv[1] == "-solve" or sys.argv[1] == "-s":
                     settings["mode"] = "solve"
                 else:
-                    print ("Mode is not selected!")
+                    if settings["verbosity"]>0:
+                        print ("Mode is not selected!")
                     #printusage()
                     sys.exit()
-            for i in range(2, len(sys.argv)):        
+            for i in range(2, len(sys.argv)):  
+                if (sys.argv[i] == '-verbosity'):
+                    settings["verbosity"] = int(sys.argv[i+1])      
                 if (sys.argv[i] == '-solver'):
                     settings["solver"] = sys.argv[i+1]
                 if (sys.argv[i] == '-sampler'):
@@ -122,7 +127,8 @@ def parse_commandline():
                         settings["decomposition_set"].append( int (varnumber) )            
     #assimilate settings
     if settings["solver"] == "":
-        print("Solver is not specified")
+        if settings["verbosity"]>0:
+            print("Solver is not specified")
         sys.exit()
 
     if settings["solver"].find("/")==-1:
@@ -131,14 +137,16 @@ def parse_commandline():
 
 
     if settings["sampler"] == "" and settings["usesampler"] == True:
-        print("Sampler is not specified")
+        if settings["verbosity"]>0:
+            print("Sampler is not specified")
         sys.exit()
 
     if settings["sampler"] .find("/")==-1:
         settings["sampler"] = "./"  + settings["sampler"]
 
     if settings["cnf"] == "":
-        print("No cnf file given")
+        if settings["verbosity"]>0:
+            print("No cnf file given")
         sys.exit()
 
     if settings["cnf"].find("/")==-1:
@@ -158,7 +166,8 @@ def parse_commandline():
                 data = d_set.read().replace('\n','')
                 settings["decomposition_set"] =  [int(u) for u in re.findall(r'\d+',data)]
         else:
-            print("Decomposition set is not specified!")
+            if settings["verbosity"]>0:
+                print("Decomposition set is not specified!")
             #logging.info("Decomposition set not specified")
             sys.exit()    
     dset_size = 2**len(settings["decomposition_set"])
@@ -219,6 +228,10 @@ def printusage():
     print("The following arguments are recognized from the command line.")
     print("Command line valued override that specified in settings.")
     print("General settings")
+    print("\t -verbosity 0, 1 or 2  to specify verbosity.")
+    print("\t\t 0 - only runtime estimation is displayed")   
+    print("\t\t 1 - default value") 
+    print("\t\t 2 - verbose mode") 
     print("\t -solver \"solvername\" to specify solver binary")    
     print("\t -sampler \"samplername\" to specify sampler binary")
     print("\t -cnf \"cnfname\" to specify cnf file path")
@@ -246,6 +259,7 @@ def dump_settings_to_file(filename_st):
     #forming a dictionary in beautiful format
     settings_json_dict = {}
     settings_json_dict["general_settings"]={}
+    settings_json_dict["general_settings"]["verbosity"] = settings["verbosity"]
     settings_json_dict["general_settings"]["solver"] = settings["solver"]
     settings_json_dict["general_settings"]["solver_settings"] = {}
     settings_json_dict["general_settings"]["solver_settings"]["satisfiying_assignment_string"]=\
@@ -286,6 +300,9 @@ def load_settings_from_file(filename_st):
         s_in = json.load(settings_input)
     
     if ("general_settings") in s_in.keys():
+        if "verbosity" in s_in["general_settings"].keys():
+            settings["verbosity"] = s_in["general_settings"]["verbosity"]
+
         if "solver" in s_in["general_settings"].keys():
             settings["solver"] = s_in["general_settings"]["solver"]
         
@@ -349,30 +366,36 @@ def load_settings_from_file(filename_st):
 
 def print_state():
     if (settings["mode"] == "solve"):
-        print("ALIAS launched in solving mode for cnf {}".format(settings["cnf"]))    
+        if settings["verbosity"]>0:
+            print("ALIAS launched in solving mode for cnf {}".format(settings["cnf"]))    
         logging.info("ALIAS launched in solving mode for cnf {}".format(settings["cnf"]))
     else:
-        print("ALIAS launched in estimating mode for cnf {}".format(settings["cnf"]))        
+        if settings["verbosity"]>0:
+            print("ALIAS launched in estimating mode for cnf {}".format(settings["cnf"]))        
         logging.info("ALIAS launched in estimating mode for cnf {}".format(settings["cnf"]))        
-    print("Starting the computations using {} processes.".format(settings["numproc"]))
-    print("Backdoor: "+str(settings["decomposition_set"]))
+    if settings["verbosity"]>0:
+        print("Starting the computations using {} processes.".format(settings["numproc"]))
+        print("Backdoor: "+str(settings["decomposition_set"]))
     logging.info("Starting the computations using {} processes.".format(settings["numproc"]))
     logging.info("Backdoor: "+str(settings["decomposition_set"]))
     if (settings["mode"]=="estimate"):
-        print("Processing {} diapasons of {} assumptions divided into blocks of size {}".format(\
-        settings["numdiap"], settings["numassumpts"],settings["blocksize"]))
+        if settings["verbosity"]>0:
+            print("Processing {} diapasons of {} assumptions divided into blocks of size {}".format(\
+            settings["numdiap"], settings["numassumpts"],settings["blocksize"]))
         logging.info("Processing {} diapasons of {} assumptions divided into blocks of size {}".format(\
         settings["numdiap"], settings["numassumpts"],settings["blocksize"]))
 
     if (settings["mode"]=="solve"):        
-        print("{} assumptions are split into {} workunits divided into blocks of size {}"\
-        .format(str(2**len(settings["decomposition_set"])), settings["number_of_workunits"],\
-        settings["blocksize"]))
+        if settings["verbosity"]>0:
+            print("{} assumptions are split into {} workunits divided into blocks of size {}"\
+            .format(str(2**len(settings["decomposition_set"])), settings["number_of_workunits"],\
+            settings["blocksize"]))
         logging.info("{} assumptions are split into {} workunits divided into blocks of size {}"\
         .format(str(2**len(settings["decomposition_set"])), settings["number_of_workunits"],\
         settings["blocksize"]))
         if settings["wtlimitsolve"]>0:
-            print("Wall time limit is set to {} seconds".format(settings["wtlimitsolve"]))
+            if settings["verbosity"]>0:
+                print("Wall time limit is set to {} seconds".format(settings["wtlimitsolve"]))
             logging.info("Wall time limit is set to {} seconds".format(settings["wtlimitsolve"]))
 
 def initialize_settings():
@@ -382,13 +405,15 @@ def initialize_settings():
     if os.path.isfile(current_path+"alias_settings") == True:
         settings_fn = current_path+"alias_settings"
     if (settings_fn == ""):
-        print("alias_settings file not found. Dumping sample settings to " + current_path+"alias_settings")
+        if settings["verbosity"]>0:
+            print("alias_settings file not found. Dumping sample settings to " + current_path+"alias_settings")
         dump_settings_to_file(current_path+"alias_settings")
         sys.exit()
     else:
         load_settings_from_file(settings_fn)
     parse_commandline()
-    print_state()
+    if settings["verbosity"]>0:
+        print_state()
 #parse command line arguments and print help
 #printusage()
 
@@ -403,6 +428,7 @@ def mp_launch_solver (input, event):
 
     #scale ttl to number of tasks
     time_to_live = round(input[1] * ttl)
+    #time_to_live = round(ttl)
     if time_to_live < 1: 
         time_to_live = 10
 
@@ -609,13 +635,15 @@ def mp_process_workunit (input, SA_event, INTERRUPT_event, ERROR_event):
                 flag = False
                 for line in wu_runsolve.stdout:          
                     if (line.find(settings["satisfiying_assignment_string"])!=-1):
-                        print("Satisfying assignment found.")            
+                        if settings["verbosity"]>0:
+                            print("Satisfying assignment found.")            
                         settings["diapason_winner"] = l
                         copyfile(l,str(wu_index)+"_diap_ss")                        
                         SA_event.set()
                     if flag==True:   
                         settings["SS"]=line.rstrip()
-                        print(settings["SS"])
+                        if settings["verbosity"]>0:
+                            print(settings["SS"])
                         flag=False
                     #totally dependent on ipasir now. 
                     #need a general enough way to move this functionality into settings
@@ -643,7 +671,8 @@ def log_result(results, index, event1, event2, event3, n_of_points):
                 time_elapsed = time.perf_counter() - settings["solving_started"]
                 estimation = (time_elapsed / len(results)) * n_of_points
                 logging.debug("Elapsed time: {}. Estimated total time: {}.".format(str(time_elapsed),str(estimation)))
-            print ('{} % done'.format(100*len(results)/n_of_points))
+            if settings["verbosity"]>0:
+                print ('{} % done'.format(100*len(results)/n_of_points))
     return lr
     
 
@@ -662,7 +691,8 @@ def multiprocess_solve(solve_data):
         p.close()
         p.join()
         if SA_event.is_set() == True:
-            print("SA found!")
+            if settings["verbosity"]>0:
+                print("SA found!")
             logging.info("Satisfying assignment found")
         if INTERRUPT_event.is_set()== True:            
             settings["interrupted"] = True
@@ -705,9 +735,10 @@ def ALIAS_solve():
     #print("")
 #    print(str(settings))
     if settings["interrupted"] == True:
-        print("Solving interrupted due to the time limit.")
-        print("Wall time spent: {}".format(walltime))
-        print("CPU time spent: {}".format(cputime))
+        if settings["verbosity"]>0:
+            print("Solving interrupted due to the time limit.")
+            print("Wall time spent: {}".format(walltime))
+            print("CPU time spent: {}".format(cputime))
     else:
         print(settings["solveout"].format(cputime,walltime))
 
@@ -719,6 +750,3 @@ if settings["mode"] == "estimate":
     ALIAS_estimate()
 if settings["mode"] == "solve":
     ALIAS_solve()
-
-
-    
