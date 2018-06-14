@@ -188,7 +188,8 @@ def parse_commandline():
     
     bkv_ttl = -1
     if settings["bkv"] > 0:
-        bkv_ttl = settings["bkv"]*10/(2**len(settings["decomposition_set"]))
+        #bkv_ttl = settings["bkv"]*10/(2**len(settings["decomposition_set"]))
+        bkv_ttl =settings["numassumpts"]*settings["bkv"]*10/(2**len(settings["decomposition_set"]))
         if bkv_ttl < settings["maxtlpertask"]:
             settings["maxtlpertask"] = bkv_ttl
     
