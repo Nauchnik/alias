@@ -427,10 +427,10 @@ def mp_launch_solver (input, event):
     ttl = settings["maxtlpertask"]
 
     #scale ttl to number of tasks
-    time_to_live = round(input[1] * ttl)
-    #time_to_live = round(ttl)
+    #time_to_live = round(input[1] * ttl)
+    time_to_live = round(ttl)
     if time_to_live < 1: 
-        time_to_live = 10
+        time_to_live = 1
 
     if not event.is_set():
         t1 = time.perf_counter()
