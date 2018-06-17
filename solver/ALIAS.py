@@ -564,6 +564,8 @@ def ALIAS_estimate():
         sum = sum + v
     if runtime_estimation!=-1:
         runtime_estimation = (sum*d_set_size)/assumptions_total
+    if runtime_estimation==-1:
+        runtime_estimation = 1e300
     
     logging.info(settings["estimout"].format(runtime_estimation))
     print (settings["estimout"].format(runtime_estimation))
