@@ -69,13 +69,15 @@ can be used for this purpose.
 
 For instance, to build IPASIR-based glucose4, one should:
 
-- download the archive https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
+- > wget https://baldur.iti.kit.edu/sat-competition-2017/solvers/incremental/glucose-ipasir.zip
 
 - > unzip ./glucose-ipasir.zip -d ./glucose-ipasir/
 
 - > cp -rf ./glucose-ipasir/sat/glucose4/ ./alias/ipasir/sat/
 
-- rebuild alias, then genipainterval-glucose4 will appear in the bin folder
+- > make clean
+
+- > make
 
 ================================================================================
 HOW TO LAUNCH
