@@ -6,7 +6,8 @@ all:
 	cp ./solver/alias_settings ./bin/
 	chmod +x ./ipasir/scripts/mkall.sh; chmod +x ./ipasir/scripts/mkone.sh; chmod +x ./ipasir/scripts/mkcln.sh; 
 	rm -rf ./ipasir/app/*
-	cp -rf ./genipainterval ./ipasir/app/ 
+	cp -rf ./genipainterval ./ipasir/app/
+	cp -rf ./ipasir_solvers/* ./ipasir/sat/
 	cd ipasir; make all; cp -rf ./bin/genipainterval* ../bin/
 clean: 
 	cd sampler/core/; export MROOT=..; make clean

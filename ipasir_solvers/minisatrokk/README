@@ -1,0 +1,2 @@
+This is ROKK (Minisat hack) solver implemented as an IPASIR-solver. It is based on Minisat 2.2.0 implementation from
+IPASIR sources, made by Armin Biere (Fre Dez 19 21:05:29 CET 2014). It is compatible with the ALIAS tool.
