@@ -42,9 +42,9 @@ benchmarks/      contains crafted and cryptographic instances which were
 ================================================================================
 REQUIRED PACKAGES
 
-python3.6, g++ (version 5+), build-essential, git, unzip
+python3.6, g++ (version 5+), build-essential, git, unzip, zlib
 
-> sudo apt-get install g++ build-essential git unzip python3.6
+> sudo apt-get install g++ build-essential git unzip python3.6 zlibc zlib1g zlib1g-dev
 
 To install python3.6 on old Ubuntu versions (e.g., 14.04 or 16.04), please follow the instructions from this quide
 https://askubuntu.com/questions/865554/how-do-i-install-python-3-6-using-apt-get
