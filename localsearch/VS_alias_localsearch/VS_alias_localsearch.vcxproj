@@ -118,12 +118,10 @@
     <ClCompile Include="..\alias_ls.cpp" />
     <ClCompile Include="..\base_ls.cpp" />
     <ClCompile Include="..\igbfs.cpp" />
-    <ClCompile Include="..\merged_ihc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\base_ls.h" />
     <ClInclude Include="..\igbfs.h" />
-    <ClInclude Include="..\merged_ihc.h" />
     <ClInclude Include="..\point.h" />
   </ItemGroup>
   <ItemGroup>

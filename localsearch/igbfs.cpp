@@ -183,7 +183,7 @@ void igbfs::GBFS(const point start_point)
 		for (unsigned i = 0; i < local_record_point.value.size(); i++)
 			changing_vars.push_back(i);
 		random_shuffle(changing_vars.begin(), changing_vars.end());
-		int changing_vars_count = changing_vars.size();
+		size_t changing_vars_count = changing_vars.size();
 		//cout << "new start point " << endl;
 		for (int i = -1; i < changing_vars_count; i++) { // i == -1 is required to check a point itself
 			if (isTimeExceeded() || isEstTooLong()) {
@@ -308,7 +308,7 @@ point igbfs::jumpPoint(point cur_point)
 	point jump_point = cur_point;
 	unsigned changed_vals = 0;
 	mt19937 mt(rd());
-	unsigned cur_point_var_count = cur_point.value.size();
+	size_t cur_point_var_count = cur_point.value.size();
 	uniform_int_distribution<unsigned> dist(0, cur_point_var_count - 1);
 	for (;;) {
 		unsigned rand_ind = dist(mt);
@@ -381,7 +381,7 @@ void igbfs::randSearch()
 point igbfs::generateRandPoint(const unsigned var_count)
 {
 	point p;
-	unsigned total_var_count = vars.size();
+	size_t total_var_count = vars.size();
 	p.value.resize(total_var_count);
 	for (auto x : p.value)
 		x = false;
