@@ -22,6 +22,7 @@ base_local_search::base_local_search() :
 	rand_from(0),
 	rand_to(0),
 	rand_points(0),
+	opt_alg(0),
 	verbosity(0)
 {
 	start_t = chrono::high_resolution_clock::now();
@@ -282,6 +283,8 @@ void base_local_search::parseParams(const int argc, char *argv[])
 			alias_script_name = res_str;
 		else if (strPrefix(par_str, "-solver=", res_str))
 			solver_name = res_str;
+		else if (strPrefix(par_str, "-opt_alg=", res_str))
+			istringstream(res_str) >> opt_alg;
 		else if (strPrefix(par_str, "-cpu-lim=", res_str))
 			istringstream(res_str) >> cpu_lim;
 		else if (strPrefix(par_str, "-jump-lim", res_str))
@@ -317,6 +320,7 @@ void base_local_search::parseParams(const int argc, char *argv[])
 	cout << "pcs name " << pcs_name << endl;
 	cout << "solver name " << solver_name << endl;
 	cout << "alias script name " << alias_script_name << endl;
+	cout << "opt_alg " << opt_alg << endl;
 	cout << "cpu lim " << cpu_lim << endl;
 	cout << "is_jump_mode " << is_jump_mode << endl;
 	cout << "jump lim " << jump_lim << endl;

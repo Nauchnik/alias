@@ -22,6 +22,8 @@ public:
 	point jumpPoint(point cur_point);
 	void iteratedGBFS();
 	void randSearch();
+	void randSearchWholeSpace();
+	void randSearchReduceOneVar();
 	void findBackdoor();
 	point generateRandPoint(const unsigned var_count);
 };

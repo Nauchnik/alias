@@ -268,7 +268,7 @@ void igbfs::updateLocalRecord(point cur_point)
 		}
 		if (global_record_point.weight() < MIN_VARS_JUMP_FROM)
 			is_jump_mode = false;
-		if (!is_jump_mode)
+		if ( (!is_jump_mode) && (!is_random_search) )
 			for (unsigned j = 0; j < global_record_point.value.size(); j++)
 				if (global_record_point.value[j])
 					vars[j].global_records++;
@@ -296,8 +296,6 @@ void igbfs::updateLocalRecord(point cur_point)
 	
 	if ( (is_jump_mode) && (cur_point.weight() > MIN_VARS_JUMP_FROM) && (vars_decr_times >= 4) )
 		local_record_point = jumpPoint(cur_point);
-	else
-		local_record_point = cur_point;
 }
 
 point igbfs::jumpPoint(point cur_point)
@@ -332,6 +330,11 @@ point igbfs::jumpPoint(point cur_point)
 
 void igbfs::findBackdoor()
 {
+	if (opt_alg == 0)
+		randSearchWholeSpace();
+	else if (opt_alg == 1)
+		randSearchReduceOneVar();
+
 	if ((!isKnownBackdoor()) && (rand_from > 0)) {
 		randSearch();
 	}
@@ -348,6 +351,7 @@ void igbfs::randSearch()
 {
 	cout << "randSearch()\n";
 	is_jump_mode = false;
+	is_random_search = true;
 	unsigned total_points_count = rand_points * (rand_to - rand_from + 1);
 	cout << "total_points_count " << total_points_count << endl;
 
@@ -378,6 +382,69 @@ void igbfs::randSearch()
 	}
 }
 
+void igbfs::randSearchWholeSpace()
+{
+	cout << "randSearchWholeSpace()\n";
+	is_jump_mode = false;
+	is_random_search = true;
+	
+	mt19937 mt(rd());
+	size_t total_var_count = vars.size();
+	uniform_int_distribution<unsigned> dist(0, total_var_count - 1);
+
+	for (;;) {
+		unsigned random_size = dist(mt);
+		point p = generateRandPoint(random_size);
+		
+		calculateEstimation(p);
+		if (p.estimation <= 0)
+			continue;
+		if (p.estimation < global_record_point.estimation)
+			updateLocalRecord(p);
+
+		if (isTimeExceeded() || isEstTooLong()) {
+			cout << "*** interrupt the search" << endl;
+			writeToGraphFile("--- interrupt\n");
+			break;
+		}
+	}
+}
+
+void igbfs::randSearchReduceOneVar()
+{
+	cout << "randSearchReduceOneVar()\n";
+	is_jump_mode = false;
+	is_random_search = true;
+	
+	// first, calculate on a start point - all variables
+	point p;
+	size_t total_var_count = vars.size();
+	p.value.resize(total_var_count);
+	for (auto x : p.value)
+		x = true;
+	calculateEstimation(p);
+	updateLocalRecord(p);
+
+	unsigned cur_set_size = total_var_count-1;
+	for (;;) {
+		point p = generateRandPoint(cur_set_size);
+
+		calculateEstimation(p);
+		if (p.estimation <= 0)
+			continue;
+		if (p.estimation < global_record_point.estimation) {
+			updateLocalRecord(p);
+			cur_set_size--;
+		}
+		
+		if (isTimeExceeded() || isEstTooLong()) {
+			cout << "*** interrupt the search" << endl;
+			writeToGraphFile("--- interrupt\n");
+			break;
+		}
+	}
+}
+
 point igbfs::generateRandPoint(const unsigned var_count)
 {
 	point p;
@@ -392,10 +459,9 @@ point igbfs::generateRandPoint(const unsigned var_count)
 	vector<unsigned> rand_vec;
 	for (;;) {
 		unsigned val = dist(mt);
-		if (find(rand_vec.begin(), rand_vec.end(), val) == rand_vec.end())
-			rand_vec.push_back(val);
-		else
+		if (find(rand_vec.begin(), rand_vec.end(), val) != rand_vec.end())
 			continue;
+		rand_vec.push_back(val);
 		if (rand_vec.size() == var_count)
 			break;
 	}

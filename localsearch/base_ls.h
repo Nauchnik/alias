@@ -72,6 +72,7 @@ protected:
 	fstream graph_file;
 	string alias_script_name;
 	string solver_name;
+	unsigned opt_alg; // 0 - randSearchWholeSpace(), 1 - randSearchReduceOneVar()
 	int cpu_cores;
 	double cpu_lim;
 	unsigned jump_lim;
@@ -80,6 +81,7 @@ protected:
 	unsigned jump_step;
 	point before_jump_point;
 	bool is_jump_mode;
+	bool is_random_search;
 	unsigned vars_decr_times;
 	chrono::high_resolution_clock::time_point start_t;
 	bool is_solve;
