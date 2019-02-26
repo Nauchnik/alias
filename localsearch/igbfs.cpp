@@ -4,6 +4,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
+#include <set>
 
 bool compareByCalculations(const var &a, const var &b)
 {
@@ -151,7 +152,7 @@ void igbfs::iteratedGBFS()
 		jumps_count++;
 		if (isTimeExceeded() || isEstTooLong() || (jumps_count > jump_lim)) {
 			cout << "*** interrupt the search" << endl;
-			writeToGraphFile("--- interrupt\n");
+			writeToGraphFile("--- interrupt");
 			break;
 		}
 		start_point = permutateRecordPoint();
@@ -334,16 +335,17 @@ void igbfs::findBackdoor()
 		randSearchWholeSpace();
 	else if (opt_alg == 1)
 		randSearchReduceOneVar();
-
-	if ((!isKnownBackdoor()) && (rand_from > 0)) {
-		randSearch();
-	}
-	else if (!isKnownBackdoor())
-		iteratedGBFS();
-	else if (isKnownBackdoor()) {
-		calculateEstimation(known_backdoor);
-		global_record_point = known_backdoor;
-		printGlobalRecordPoint();
+	else {
+		if ((!isKnownBackdoor()) && (rand_from > 0)) {
+			randSearch();
+		}
+		else if (!isKnownBackdoor())
+			iteratedGBFS();
+		else if (isKnownBackdoor()) {
+			calculateEstimation(known_backdoor);
+			global_record_point = known_backdoor;
+			printGlobalRecordPoint();
+		}
 	}
 }
 
@@ -361,7 +363,7 @@ void igbfs::randSearch()
 		for (unsigned j=0; j< rand_points; j++) {
 			if (isTimeExceeded() || isEstTooLong()) {
 				cout << "*** interrupt the search" << endl;
-				writeToGraphFile("--- interrupt\n");
+				writeToGraphFile("--- interrupt");
 				is_break = true;
 				break;
 			}
@@ -382,6 +384,32 @@ void igbfs::randSearch()
 	}
 }
 
+
+point igbfs::generateRandPoint(const unsigned point_var_count)
+{
+	point p;
+	size_t total_var_count = vars.size();
+	p.value.resize(total_var_count);
+	for (auto x : p.value)
+		x = false;
+
+	mt19937 mt(rd());
+	uniform_int_distribution<unsigned> dist(0, total_var_count - 1);
+
+	set<unsigned> rand_set;
+	for (;;) {
+		unsigned val = dist(mt);
+		rand_set.insert(val);
+		if (rand_set.size() == point_var_count)
+			break;
+	}
+
+	for (auto x : rand_set)
+		p.value[x] = true;
+
+	return p;
+}
+
 void igbfs::randSearchWholeSpace()
 {
 	cout << "randSearchWholeSpace()\n";
@@ -390,10 +418,13 @@ void igbfs::randSearchWholeSpace()
 	
 	mt19937 mt(rd());
 	size_t total_var_count = vars.size();
-	uniform_int_distribution<unsigned> dist(0, total_var_count - 1);
+	uniform_int_distribution<unsigned> dist(1, total_var_count - 1);
 
 	for (;;) {
-		unsigned random_size = dist(mt);
+		unsigned random_size;
+		do {
+			random_size = dist(mt);
+		} while (random_size < 10); // TODO - remove after fixes in ALIAS.py
 		point p = generateRandPoint(random_size);
 		
 		calculateEstimation(p);
@@ -404,7 +435,7 @@ void igbfs::randSearchWholeSpace()
 
 		if (isTimeExceeded() || isEstTooLong()) {
 			cout << "*** interrupt the search" << endl;
-			writeToGraphFile("--- interrupt\n");
+			writeToGraphFile("--- interrupt");
 			break;
 		}
 	}
@@ -435,46 +466,16 @@ void igbfs::randSearchReduceOneVar()
 		if (p.estimation < global_record_point.estimation) {
 			updateLocalRecord(p);
 			cur_set_size--;
+			if (!cur_set_size) {
+				cout << "exit: cur_set_size " << cur_set_size << endl;
+				break;
+			}
 		}
 		
 		if (isTimeExceeded() || isEstTooLong()) {
 			cout << "*** interrupt the search" << endl;
-			writeToGraphFile("--- interrupt\n");
+			writeToGraphFile("--- interrupt");
 			break;
 		}
 	}
-}
-
-point igbfs::generateRandPoint(const unsigned var_count)
-{
-	point p;
-	size_t total_var_count = vars.size();
-	p.value.resize(total_var_count);
-	for (auto x : p.value)
-		x = false;
-
-	mt19937 mt(rd());
-	uniform_int_distribution<unsigned> dist(0, total_var_count-1);
-	
-	vector<unsigned> rand_vec;
-	for (;;) {
-		unsigned val = dist(mt);
-		if (find(rand_vec.begin(), rand_vec.end(), val) != rand_vec.end())
-			continue;
-		rand_vec.push_back(val);
-		if (rand_vec.size() == var_count)
-			break;
-	}
-	
-	if (verbosity > 1) {
-		cout << "rand_vec.size() " << rand_vec.size() << endl;
-		for (auto x : rand_vec)
-			cout << x << " ";
-		cout << endl;
-	}
-
-	for (auto x : rand_vec)
-		p.value[x] = true;
-
-	return p;
 }

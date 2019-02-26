@@ -25,7 +25,7 @@ public:
 	void randSearchWholeSpace();
 	void randSearchReduceOneVar();
 	void findBackdoor();
-	point generateRandPoint(const unsigned var_count);
+	point generateRandPoint(const unsigned point_var_count);
 };
 
 #endif

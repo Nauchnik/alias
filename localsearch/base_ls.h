@@ -52,12 +52,13 @@ public:
 	string getScriptCommand(const int mode, const point cur_point);
 	bool isKnownBackdoor();
 	int getVarPos(const int val);
-
 	inline bool isChecked(const point cur_point) {
 		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());
 	}
-
 	void printGlobalRecordPoint();
+	string printUintVector(vector<unsigned>);
+	
+	int total_func_calculations;
 
 protected:
 	vector<var> vars;

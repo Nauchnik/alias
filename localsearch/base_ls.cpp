@@ -23,6 +23,7 @@ base_local_search::base_local_search() :
 	rand_to(0),
 	rand_points(0),
 	opt_alg(0),
+	total_func_calculations(0),
 	verbosity(0)
 {
 	start_t = chrono::high_resolution_clock::now();
@@ -175,6 +176,8 @@ void base_local_search::setGraphFileName()
 	cout << "cnf_name_short " << cnf_name_short << endl;
 	graph_file_name = "alias_" + solver_name_short + "_" + cnf_name_short;
 	cout << "graph_file_name " << graph_file_name << endl;
+	graph_file.open(graph_file_name, ios_base::out); // erase file
+	graph_file.close();
 }
 
 void base_local_search::writeToGraphFile(const string str) 
@@ -191,6 +194,14 @@ int base_local_search::getCpuCores()
 	if (cpu_cores <= 0)
 		exit(-1);
 	return cpu_cores;
+}
+
+string base_local_search::printUintVector(vector<unsigned> vec)
+{
+	stringstream sstream;
+	for (auto x : vec)
+		sstream << x << " ";
+	return sstream.str();
 }
 
 string base_local_search::getCmdOutput(const char* cmd) {
@@ -244,6 +255,8 @@ bool base_local_search::isEstTooLong() // for simple instances
 void base_local_search::reportResult()
 {
 	stringstream sstream;
+	sstream << "Function calculations : " << total_func_calculations << endl;
+	sstream << "Wall time : " << timeFromStart() << endl;
 	sstream << "Backdoor (numeration from 1):" << endl;
 	sstream << global_record_point.getStr(vars);
 	sstream << "Estimation for 1 CPU core : " << global_record_point.estimation << " seconds" << endl;
@@ -252,7 +265,6 @@ void base_local_search::reportResult()
 		sstream << alias_script_name << " output on the found backdoor : " << endl;
 		sstream << script_out_str << endl;
 	}
-	sstream << "total wall time " << timeFromStart() << endl;
 	cout << sstream.str();
 	
 	if (result_output_name != "") {
@@ -283,7 +295,7 @@ void base_local_search::parseParams(const int argc, char *argv[])
 			alias_script_name = res_str;
 		else if (strPrefix(par_str, "-solver=", res_str))
 			solver_name = res_str;
-		else if (strPrefix(par_str, "-opt_alg=", res_str))
+		else if (strPrefix(par_str, "-opt-alg=", res_str))
 			istringstream(res_str) >> opt_alg;
 		else if (strPrefix(par_str, "-cpu-lim=", res_str))
 			istringstream(res_str) >> cpu_lim;
@@ -343,6 +355,7 @@ void base_local_search::init()
 	loadVars();
 	loadBackdoor();
 	setGraphFileName();
+
 	cpu_cores = getCpuCores();
 }
 
@@ -364,11 +377,12 @@ void base_local_search::calculateEstimation(point &cur_point)
 		sstream << out_str;
 		sstream >> cur_point.estimation;
 	}
-	if (!is_jump_mode) {
+	if ((!is_jump_mode) && (!is_random_search)) {
 		for (unsigned j = 0; j < cur_point.value.size(); j++)
 			if (cur_point.value[j])
 				vars[j].calculations++;
 	}
+	total_func_calculations++;
 }
 
 bool base_local_search::solveInstance()
