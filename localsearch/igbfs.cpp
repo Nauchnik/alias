@@ -335,10 +335,15 @@ void igbfs::findBackdoor()
 		randSearchWholeSpace();
 	else if (opt_alg == 1)
 		randSearchReduceOneVar();
+	else if (opt_alg == 2)
+		simpleHillClimbing();
+	else if (opt_alg == 3)
+		steepestAscentHillClimbing();
+	else if (opt_alg == 4)
+		tabuSearch();
 	else {
-		if ((!isKnownBackdoor()) && (rand_from > 0)) {
+		if ((!isKnownBackdoor()) && (rand_from > 0))
 			randSearch();
-		}
 		else if (!isKnownBackdoor())
 			iteratedGBFS();
 		else if (isKnownBackdoor()) {
@@ -477,5 +482,145 @@ void igbfs::randSearchReduceOneVar()
 			writeToGraphFile("--- interrupt");
 			break;
 		}
+	}
+}
+
+vector<point> igbfs::neighbors(point p)
+{
+	vector<point> neighbors(p.value.size());
+	for (unsigned i = 0; i < p.value.size(); i++) {
+		point new_p = p;
+		new_p.value[i] = p.value[i] == true ? false : true;
+		neighbors[i] = new_p;
+	}
+	random_shuffle(neighbors.begin(), neighbors.end());
+	return neighbors;
+}
+
+void igbfs::simpleHillClimbing()
+{
+	cout << "simpleHillClimbing()\n";
+	is_jump_mode = false;
+	is_random_search = false;
+	
+	// first, calculate on a start point - all variables
+	point neigh_center;
+	size_t total_var_count = vars.size();
+	neigh_center.value.resize(total_var_count);
+	for (auto x : neigh_center.value)
+		x = true;
+	calculateEstimation(neigh_center);
+	updateLocalRecord(neigh_center);
+	
+	for(;;) {
+		bool is_local_record_updated = false;
+		vector<point> neighbors_points = neighbors(neigh_center);
+		for (auto neighbor : neighbors_points) {
+			calculateEstimation(neighbor);
+			if (neighbor.estimation <= 0)
+				continue;
+			if (neighbor.estimation < global_record_point.estimation) {
+				updateLocalRecord(neighbor);
+				neigh_center = neighbor;
+				is_local_record_updated = true;
+				break;
+			}
+
+			if (isTimeExceeded() || isEstTooLong()) {
+				cout << "*** interrupt the search" << endl;
+				writeToGraphFile("--- interrupt");
+				break;
+			}
+		}
+		if (!is_local_record_updated)
+			break; // local minimum
+	}
+}
+
+void igbfs::steepestAscentHillClimbing()
+{
+	cout << "steepestAscentHillClimbing()\n";
+	is_jump_mode = false;
+	is_random_search = false;
+
+	// first, calculate on a start point - all variables
+	point neigh_center;
+	size_t total_var_count = vars.size();
+	neigh_center.value.resize(total_var_count);
+	for (auto x : neigh_center.value)
+		x = true;
+	calculateEstimation(neigh_center);
+	updateLocalRecord(neigh_center);
+
+	for (;;) {
+		bool is_local_record_updated = false;
+		vector<point> neighbors_points = neighbors(neigh_center);
+		for (auto neighbor : neighbors_points) {
+			calculateEstimation(neighbor);
+			if (neighbor.estimation <= 0)
+				continue;
+			if (neighbor.estimation < global_record_point.estimation) {
+				updateLocalRecord(neighbor);
+				neigh_center = neighbor;
+				is_local_record_updated = true;
+			}
+
+			if (isTimeExceeded() || isEstTooLong()) {
+				cout << "*** interrupt the search" << endl;
+				writeToGraphFile("--- interrupt");
+				break;
+			}
+		}
+		if (!is_local_record_updated)
+			break; // local minimum
+	}
+}
+
+void igbfs::tabuSearch()
+{
+	cout << "tabuSearch()\n";
+	is_jump_mode = false;
+	is_random_search = false;
+
+	// first, calculate on a start point - all variables
+	point neigh_center;
+	size_t total_var_count = vars.size();
+	neigh_center.value.resize(total_var_count);
+	for (auto x : neigh_center.value)
+		x = true;
+	calculateEstimation(neigh_center);
+	updateLocalRecord(neigh_center);
+	
+	int max_tabu_list_size = 1000;
+	vector<point> tabu_list;
+	point local_min_point;
+	for (;;) {
+		vector<point> neighbors_points = neighbors(neigh_center);
+		local_min_point.estimation = HUGE_VALF;
+		for (auto neighbor : neighbors_points) {
+			if (find(tabu_list.begin(), tabu_list.end(), neighbor) != tabu_list.end())
+				continue;
+			calculateEstimation(neighbor);
+			if (neighbor.estimation <= 0)
+				continue;
+			if (neighbor.estimation < local_min_point.estimation)
+				local_min_point = neighbor;
+
+			if (isTimeExceeded() || isEstTooLong()) {
+				cout << "*** interrupt the search" << endl;
+				writeToGraphFile("--- interrupt");
+				break;
+			}
+		}
+		if (local_min_point.estimation == HUGE_VALF) {
+			cout << "exit: local_min_point estimation " << local_min_point.estimation << endl;
+			break;
+		}
+		tabu_list.push_back(local_min_point);
+		if (tabu_list.size() > max_tabu_list_size)
+			tabu_list.erase(tabu_list.begin());
+		if (local_min_point.estimation < global_record_point.estimation)
+			updateLocalRecord(local_min_point);
+		neigh_center = local_min_point;
 	}
 }

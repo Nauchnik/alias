@@ -20,10 +20,14 @@ public:
 	void GBFS(const point start_point);
 	void updateLocalRecord(point cur_point);
 	point jumpPoint(point cur_point);
+	vector<point> neighbors(point p);
 	void iteratedGBFS();
 	void randSearch();
 	void randSearchWholeSpace();
 	void randSearchReduceOneVar();
+	void simpleHillClimbing();
+	void steepestAscentHillClimbing();
+	void tabuSearch();
 	void findBackdoor();
 	point generateRandPoint(const unsigned point_var_count);
 };
