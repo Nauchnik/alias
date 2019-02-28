@@ -28,6 +28,7 @@ public:
 	void simpleHillClimbing();
 	void steepestAscentHillClimbing();
 	void tabuSearch();
+	void one_plus_one();
 	void findBackdoor();
 	point generateRandPoint(const unsigned point_var_count);
 };

@@ -306,7 +306,7 @@ point igbfs::jumpPoint(point cur_point)
 	before_jump_point = cur_point;
 	point jump_point = cur_point;
 	unsigned changed_vals = 0;
-	mt19937 mt(rd());
+	mt19937 mt(time(0));
 	size_t cur_point_var_count = cur_point.value.size();
 	uniform_int_distribution<unsigned> dist(0, cur_point_var_count - 1);
 	for (;;) {
@@ -341,6 +341,8 @@ void igbfs::findBackdoor()
 		steepestAscentHillClimbing();
 	else if (opt_alg == 4)
 		tabuSearch();
+	else if (opt_alg == 5)
+		one_plus_one();
 	else {
 		if ((!isKnownBackdoor()) && (rand_from > 0))
 			randSearch();
@@ -398,7 +400,7 @@ point igbfs::generateRandPoint(const unsigned point_var_count)
 	for (auto x : p.value)
 		x = false;
 
-	mt19937 mt(rd());
+	mt19937 mt(time(0));
 	uniform_int_distribution<unsigned> dist(0, total_var_count - 1);
 
 	set<unsigned> rand_set;
@@ -421,7 +423,7 @@ void igbfs::randSearchWholeSpace()
 	is_jump_mode = false;
 	is_random_search = true;
 	
-	mt19937 mt(rd());
+	mt19937 mt(time(0));
 	size_t total_var_count = vars.size();
 	uniform_int_distribution<unsigned> dist(1, total_var_count - 1);
 
@@ -622,5 +624,43 @@ void igbfs::tabuSearch()
 		if (local_min_point.estimation < global_record_point.estimation)
 			updateLocalRecord(local_min_point);
 		neigh_center = local_min_point;
+	}
+}
+
+void igbfs::one_plus_one()
+{
+	cout << "tabuSearch()\n";
+	is_jump_mode = false;
+	is_random_search = true;
+
+	// first, calculate on a start point - all variables
+	point neigh_center;
+	size_t total_var_count = vars.size();
+	neigh_center.value.resize(total_var_count);
+	for (auto x : neigh_center.value)
+		x = true;
+	calculateEstimation(neigh_center);
+	updateLocalRecord(neigh_center);
+
+	mt19937 mt(time(0));
+	uniform_real_distribution<double> dist(0, 1);
+	double prob = 1 / (double)total_var_count;
+
+	for (;;) {
+		point candidate_point = neigh_center;
+		for (unsigned i=0; i<total_var_count; i++) {
+			double val = dist(mt);
+			if (val < prob)
+				candidate_point.value[i] = (candidate_point.value[i] == true) ? false : true;
+		}
+		if (candidate_point.value == neigh_center.value)
+			continue;
+		calculateEstimation(candidate_point);
+		if (candidate_point.estimation <= 0)
+			continue;
+		if (candidate_point.estimation < global_record_point.estimation) {
+			updateLocalRecord(candidate_point);
+			neigh_center = candidate_point;
+		}
 	}
 }
