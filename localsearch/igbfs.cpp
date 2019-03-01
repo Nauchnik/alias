@@ -534,8 +534,11 @@ void igbfs::simpleHillClimbing()
 				break;
 			}
 		}
-		if (!is_local_record_updated)
+		if (!is_local_record_updated) {
+			cout << "*** interrupt the search: local minimum" << endl;
+			writeToGraphFile("--- interrupt: local minimum");
 			break; // local minimum
+		}
 	}
 }
 
@@ -573,8 +576,11 @@ void igbfs::steepestAscentHillClimbing()
 				break;
 			}
 		}
-		if (!is_local_record_updated)
+		if (!is_local_record_updated) {
+			cout << "*** interrupt the search: local minimum" << endl;
+			writeToGraphFile("--- interrupt: local minimum");
 			break; // local minimum
+		}
 	}
 }
 
