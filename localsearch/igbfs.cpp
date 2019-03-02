@@ -514,6 +514,7 @@ void igbfs::simpleHillClimbing()
 	calculateEstimation(neigh_center);
 	updateLocalRecord(neigh_center);
 	
+	bool is_break = false;
 	for(;;) {
 		bool is_local_record_updated = false;
 		vector<point> neighbors_points = neighbors(neigh_center);
@@ -531,9 +532,12 @@ void igbfs::simpleHillClimbing()
 			if (isTimeExceeded() || isEstTooLong()) {
 				cout << "*** interrupt the search" << endl;
 				writeToGraphFile("--- interrupt");
+				is_break = true;
 				break;
 			}
 		}
+		if (is_break)
+			break;
 		if (!is_local_record_updated) {
 			cout << "*** interrupt the search: local minimum" << endl;
 			writeToGraphFile("--- interrupt: local minimum");
@@ -557,6 +561,7 @@ void igbfs::steepestAscentHillClimbing()
 	calculateEstimation(neigh_center);
 	updateLocalRecord(neigh_center);
 
+	bool is_break = false;
 	for (;;) {
 		bool is_local_record_updated = false;
 		vector<point> neighbors_points = neighbors(neigh_center);
@@ -573,9 +578,12 @@ void igbfs::steepestAscentHillClimbing()
 			if (isTimeExceeded() || isEstTooLong()) {
 				cout << "*** interrupt the search" << endl;
 				writeToGraphFile("--- interrupt");
+				is_break = true;
 				break;
 			}
 		}
+		if (is_break)
+			break;
 		if (!is_local_record_updated) {
 			cout << "*** interrupt the search: local minimum" << endl;
 			writeToGraphFile("--- interrupt: local minimum");
@@ -602,6 +610,7 @@ void igbfs::tabuSearch()
 	int max_tabu_list_size = 1000;
 	vector<point> tabu_list;
 	point local_min_point;
+	bool is_break = false;
 	for (;;) {
 		vector<point> neighbors_points = neighbors(neigh_center);
 		local_min_point.estimation = HUGE_VALF;
@@ -617,6 +626,7 @@ void igbfs::tabuSearch()
 			if (isTimeExceeded() || isEstTooLong()) {
 				cout << "*** interrupt the search" << endl;
 				writeToGraphFile("--- interrupt");
+				is_break = true;
 				break;
 			}
 		}
@@ -624,6 +634,8 @@ void igbfs::tabuSearch()
 			cout << "exit: local_min_point estimation " << local_min_point.estimation << endl;
 			break;
 		}
+		if (is_break)
+			break;
 		tabu_list.push_back(local_min_point);
 		if (tabu_list.size() > max_tabu_list_size)
 			tabu_list.erase(tabu_list.begin());
@@ -667,6 +679,12 @@ void igbfs::one_plus_one()
 		if (candidate_point.estimation < global_record_point.estimation) {
 			updateLocalRecord(candidate_point);
 			neigh_center = candidate_point;
+		}
+
+		if (isTimeExceeded() || isEstTooLong()) {
+			cout << "*** interrupt the search" << endl;
+			writeToGraphFile("--- interrupt");
+			break;
 		}
 	}
 }
