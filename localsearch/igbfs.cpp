@@ -609,19 +609,19 @@ void igbfs::tabuSearch()
 	
 	int max_tabu_list_size = 1000;
 	vector<point> tabu_list;
-	point local_min_point;
+	point best_point_in_neigh;
 	bool is_break = false;
 	for (;;) {
 		vector<point> neighbors_points = neighbors(neigh_center);
-		local_min_point.estimation = HUGE_VALF;
+		best_point_in_neigh.estimation = HUGE_VALF;
 		for (auto neighbor : neighbors_points) {
 			if (find(tabu_list.begin(), tabu_list.end(), neighbor) != tabu_list.end())
 				continue;
 			calculateEstimation(neighbor);
 			if (neighbor.estimation <= 0)
 				continue;
-			if (neighbor.estimation < local_min_point.estimation)
-				local_min_point = neighbor;
+			if (neighbor.estimation < best_point_in_neigh.estimation)
+				best_point_in_neigh = neighbor;
 
 			if (isTimeExceeded() || isEstTooLong()) {
 				cout << "*** interrupt the search" << endl;
@@ -630,24 +630,24 @@ void igbfs::tabuSearch()
 				break;
 			}
 		}
-		if (local_min_point.estimation == HUGE_VALF) {
-			cout << "exit: local_min_point estimation " << local_min_point.estimation << endl;
+		if (best_point_in_neigh.estimation == HUGE_VALF) {
+			cout << "exit: local_min_point estimation " << best_point_in_neigh.estimation << endl;
 			break;
 		}
 		if (is_break)
 			break;
-		tabu_list.push_back(local_min_point);
+		tabu_list.push_back(best_point_in_neigh);
 		if (tabu_list.size() > max_tabu_list_size)
 			tabu_list.erase(tabu_list.begin());
-		if (local_min_point.estimation < global_record_point.estimation)
-			updateLocalRecord(local_min_point);
-		neigh_center = local_min_point;
+		if (best_point_in_neigh.estimation < global_record_point.estimation)
+			updateLocalRecord(best_point_in_neigh);
+		neigh_center = best_point_in_neigh;
 	}
 }
 
 void igbfs::one_plus_one()
 {
-	cout << "tabuSearch()\n";
+	cout << "one_plus_one()\n";
 	is_jump_mode = false;
 	is_random_search = true;
 
