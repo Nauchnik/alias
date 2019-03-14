@@ -16,8 +16,8 @@ solver/          contains ALIAS.py and its settings file. ALIAS.py takes as an
                  calculates a corresponding runtime estimation. It also can 
                  solve a given instance via provided backdoor and solver.
 
-localsearch/     implementation of greedy best first search (GBFS) which 
-                 traverses a search space in order to find a backdoor with low 
+optimization/    implementation of discrete black-box optimization algorithms which 
+                 traverse a search space in order to find a backdoor with low 
                  runtime estimation 
 
 genipainterval/  program for IPASIR. This program is used to build an incremental
