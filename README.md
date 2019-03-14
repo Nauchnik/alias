@@ -90,12 +90,44 @@ By default alias_ls searches for a backdoor with good runtime estimation. It
 can also solve a given instance if the paramater --solve is set. 
 A backdoor can be given by the parameter -backdoor.
 
+If it is required to use an optimization algorithm to find a backdoor, 
+a search space should be given as an input file in the PCS format.
+PCS format is described here http://aclib.net/cssc2014/pcs-format.pdf
+The file name should be preceded by -pcs
 NB! Backdoors variables are numbered starting from 1.
 
-NB! In order to build a file which will specify a local search starting point, 
-use /alias/utils/generate_pcs.py
+In order to build a PCS file, one can use the script /alias/utils/generate_pcs.py
+As an input it takes a text file that contains a list of Boolean variables from 
+a search space. The script output is a file in the PCS format. For instance, 
+a search space contains 4 Boolean varibles with numbers 1-4.
+Then the input file of the script contains the following string:
+1 2 3 4
+The otuput file is as follows:
+v1 {0,1}[1]
+v2 {0,1}[1]
+v3 {0,1}[1]
+v4 {0,1}[1]
 
-PCS format is described here http://aclib.net/cssc2014/pcs-format.pdf
+================================================================================
+HOW  TO  USE  THE  OBJECTIVE  FUNCTION
+
+One can employ any discrete black-box optimization algorithm to minimize the ALIAS's 
+objective function in some search space.
+The instructions are as follows.
+1. Instead of the C++ program alias_ls, the script /solver/ALIAS.py should be directly used.
+2. Main parameters should be given to the script: -e, -cnf filename.
+For instance, ./ALIAS.py -e -cnf ./ASG_72_keystream76_0.cnf
+All paramters are described in /solver/README in detail.
+3. A point from the search space should be given in the following format: -v[variable number] '0|1'.
+Here -vx '1' means that a variable with the number x is in a backdoor, '0' means otherwise.
+Each variable from a backdoor should be set as an independent parameter to the script.
+For instance, the search space contains the following 72 Boolean variables: x1, x2, .., x72 and the CNF
+ASG_72_keystream76_0.cnf is studied. Then, if one want to calculate the objective function value for the 
+point {x2, x11, x29}, the script should be launched as follows:
+./ALIAS.py -e -cnf ./ASG_72_keystream76_0.cnf -v2 '1' -v11 '1' -v29 '1'
+4. The objective function value can be extracted from the script's output. In particular,
+the value is a real number prceeded by the string 'SUCCESS, 0, 0, '
+For instance, the script ouput 'SUCCESS, 0, 0, 345.34' means that the objective function value is 345.34.
 
 ================================================================================
 EXAMPLES
