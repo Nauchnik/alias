@@ -158,3 +158,24 @@ solve a given instance using a found backdoor
 
 - Example 5 - solve an instance using given backdoor, time limit 100000 seconds
 > ./alias_ls ../test/ASG_72_keystream76_0.cnf -pcs=../test/first72vars.pcs -solver=genipainterval-picosat961 -backdoor=../test/ASG_72_keystream76_0.backdoor -cpu-lim=100000 --solve
+
+================================================================================
+CITATION
+ALIAS can be cited as follows:
+
+@inproceedings{DBLP:conf/sat/KochemazovZ18,
+  author    = {Stepan Kochemazov and
+               Oleg Zaikin},
+  title     = {{ALIAS:} {A} Modular Tool for Finding Backdoors for {SAT}},
+  booktitle = {Theory and Applications of Satisfiability Testing - {SAT} 2018 - 21st
+               International Conference, {SAT} 2018, Held as Part of the Federated
+               Logic Conference, FloC 2018, Oxford, UK, July 9-12, 2018, Proceedings},
+  pages     = {419--427},
+  year      = {2018},
+  crossref  = {DBLP:conf/sat/2018},
+  url       = {https://doi.org/10.1007/978-3-319-94144-8\_25},
+  doi       = {10.1007/978-3-319-94144-8\_25},
+  timestamp = {Mon, 15 Oct 2018 13:22:26 +0200},
+  biburl    = {https://dblp.org/rec/bib/conf/sat/KochemazovZ18},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
