@@ -1,5 +1,4 @@
-================================================================================
-DESCRIPTION
+## DESCRIPTION
 
 modulAr tooL for fInding bAckdoors for Sat (ALIAS) is a tool that can employ 
 state-of-the-art incremental SAT solvers and black-box optimization heuristics 
@@ -8,8 +7,7 @@ used to solve the corresponding instance by the same incremental solver. Thus,
 ALIAS can be viewed as a tool for constructing backdoor-based divide-and-conquer 
 parallel SAT solvers.
 
-================================================================================
-DIRECTORY OVERVIEW
+## DIRECTORY OVERVIEW
 
 solver/          contains ALIAS.py and its settings file. ALIAS.py takes as an 
                  input a SAT instance, incremental solver and a backdoor, and 
@@ -39,8 +37,7 @@ test/            simple tests which can be used to make sure that everything is 
 benchmarks/      contains crafted and cryptographic instances which were
                  studied by ALIAS, as well as found backdoors
 
-================================================================================
-REQUIRED PACKAGES
+## REQUIRED PACKAGES
 
 python3.6, g++ (version 5+), build-essential, git, unzip, zlib
 
@@ -49,8 +46,7 @@ python3.6, g++ (version 5+), build-essential, git, unzip, zlib
 To install python3.6 on old Ubuntu versions (e.g., 14.04 or 16.04), please follow the instructions from this quide
 https://askubuntu.com/questions/865554/how-do-i-install-python-3-6-using-apt-get
 
-================================================================================
-HOW TO BUILD
+## HOW TO BUILD
 
 > git clone --recurse-submodules https://github.com/Nauchnik/alias.git
 
@@ -79,8 +75,7 @@ For instance, to build IPASIR-based glucose4, one should:
 
 - > make
 
-================================================================================
-HOW TO LAUNCH
+## HOW TO LAUNCH
 
 > cd ./bin/
 
@@ -109,8 +104,7 @@ v2 {0,1}[1]
 v3 {0,1}[1]
 v4 {0,1}[1]
 
-================================================================================
-HOW  TO  USE  THE  OBJECTIVE  FUNCTION
+## HOW TO USE THE OBJECTIVE FUNCTION
 
 One can employ any discrete black-box optimization algorithm to minimize the ALIAS's 
 objective function in some search space. Hereinafter a backdoor corresponds to a point in a search space.
@@ -135,8 +129,7 @@ can be found in /benchmarks/eSTREAM/. Each problem is described by a pair <CNF f
 For instance, to launch the objective function on the optimization problem for the Mickey stream cipher,
 two files should be used: Mickey_0.cnf and Mickey.pcs.
 
-================================================================================
-EXAMPLES
+## EXAMPLES
 
 - Example 1 - starting point is a whole set of CNF variables, time limit 100 seconds, 
 find backdoor and stop
@@ -159,10 +152,11 @@ solve a given instance using a found backdoor
 - Example 5 - solve an instance using given backdoor, time limit 100000 seconds
 > ./alias_ls ../test/ASG_72_keystream76_0.cnf -pcs=../test/first72vars.pcs -solver=genipainterval-picosat961 -backdoor=../test/ASG_72_keystream76_0.backdoor -cpu-lim=100000 --solve
 
-================================================================================
-CITATION
+## CITATION
+
 ALIAS can be cited as follows:
 
+```
 @inproceedings{DBLP:conf/sat/KochemazovZ18,
   author    = {Stepan Kochemazov and
                Oleg Zaikin},
@@ -179,3 +173,4 @@ ALIAS can be cited as follows:
   biburl    = {https://dblp.org/rec/bib/conf/sat/KochemazovZ18},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+```
