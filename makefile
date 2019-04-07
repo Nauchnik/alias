@@ -8,7 +8,7 @@ all:
 	rm -rf ./ipasir/app/*
 	cp -rf ./genipainterval ./ipasir/app/
 	cp -rf ./ipasir_solvers/* ./ipasir/sat/
-	rmdir -rf ./ipasir_solvers/
+	rm -rf ./ipasir_solvers/
 	cd ipasir; make all; cp -rf ./bin/genipainterval* ../bin/
 clean: 
 	cd sampler/core/; export MROOT=..; make clean
