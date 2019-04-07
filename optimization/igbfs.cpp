@@ -332,7 +332,13 @@ point igbfs::jumpPoint(point cur_point)
 
 void igbfs::findBackdoor()
 {
-	switch (opt_alg) {
+	if (isKnownBackdoor()) { // if the decomposition set is given
+		calculateEstimation(known_backdoor);
+		global_record_point = known_backdoor;
+		printGlobalRecordPoint();
+	}
+	else { // if the decomposition set is unknown and it is required to find it
+		switch (opt_alg) {
 		case 0:
 			randSearchWholeSpace();
 			break;
@@ -358,19 +364,10 @@ void igbfs::findBackdoor()
 			cout << "Unknown opt_alg, 1+1 was chosen\n";
 			one_plus_one();
 			break;
-	}
-	/*else {
-		if ((!isKnownBackdoor()) && (rand_from > 0))
-			randSearch();
-		else if (!isKnownBackdoor())
-			
-		else if (isKnownBackdoor()) {
-			calculateEstimation(known_backdoor);
-			global_record_point = known_backdoor;
-			printGlobalRecordPoint();
 		}
-	}*/
+	}
 }
+
 /*
 void igbfs::randSearch()
 {
