@@ -21,13 +21,13 @@ public:
 	void updateLocalRecord(point cur_point);
 	point jumpPoint(point cur_point);
 	vector<point> neighbors(point p);
-	void iteratedGBFS();
-	void randSearch();
+	//void randSearch();
 	void randSearchWholeSpace();
 	void randSearchReduceOneVar();
 	void simpleHillClimbing();
 	void steepestAscentHillClimbing();
 	void tabuSearch();
+	void iteratedHCVJ(); // iterated hill climbing with variables-based jump
 	void one_plus_one();
 	void findBackdoor();
 	point generateRandPoint(const unsigned point_var_count);

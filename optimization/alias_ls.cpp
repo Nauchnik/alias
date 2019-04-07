@@ -29,13 +29,11 @@ void writeUsage()
 	cout << "-solver      = <string>.                    [OBLIGATORY] IPASIR-based incremental SAT solver name \n";
 	cout << "-script      = <string> (default: ALIAS.py) [OPTIONAL]   ALIAS script name \n";
 	cout << "-pcs         = <string>.                    [OPTIONAL]   Name of a PCS (Parameter Configuration Space) file with a start point \n";
+	cout << "-opt-alg     = <unsigned> (default: 1+1)    [OPTIONAL]   Optimization algorithm. \n";
+	cout << "	0: random search in the whole space(), 1: random search reduce size by one, 2: simple hill climbing, 3: steepest ascent hill climbing \n";
+	cout << "	4: tabu search, 5: iterated hill climbing with variables-based jump; 6: (1+1)-EA \n";
 	cout << "-backdoor    = <string>                     [OPTIONAL]   Name of a file which contains a backdoor (numeration from 1) \n";
-	cout << "-jump-lim    = <uint32> (default: 3)        [OPTIONAL]   Jumps from local minumums limit, set 0 if you want local search to be fast \n";
-	cout << "--nojump                                    [OPTIONAL]   Turn off start jumping mode \n";
-	cout << "--solve                                     [OPTIONAL]   Enable solving of a given instance by a found backdoor \n";
-	cout << "-rand-from   = <uint32>                     [OPTIONAL]   Random search for backdoors - left bound of variables number \n";
-	cout << "-rand-to     = <uint32>                     [OPTIONAL]   Random search for backdoors - right bound of variables number \n";
-	cout << "-rand-points = <uint32>                     [OPTIONAL]   Random search for backdoors for each (rand_to - rand_from + 1) variables \n";
+	cout << "--solve                                     [OPTIONAL]   Enable solving of a given instance by a found (or a given) backdoor \n";
 	cout << "\n" << "MAIN OPTIONS: \n \n";
 	cout << "-cpu-lim     = <double> (default: 3600)     [OPTIONAL]   CPU wall time limit \n";
 	cout << "-verb        = <int32> [0..2] (default: 1)  [OPTIONAL]   Verbosity \n";

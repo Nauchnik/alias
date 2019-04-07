@@ -32,6 +32,8 @@ class base_local_search
 public:
 	base_local_search();
 
+	unsigned opt_alg;
+
 	int getCpuCores();
 	string getCmdOutput(const char* cmd);
 	double timeFromStart();
@@ -73,15 +75,11 @@ protected:
 	fstream graph_file;
 	string alias_script_name;
 	string solver_name;
-	unsigned opt_alg; // 0 - randSearchWholeSpace(), 1 - randSearchReduceOneVar()
 	int cpu_cores;
 	double cpu_lim;
-	unsigned jump_lim;
 	double wall_time_solving;
 	int verbosity;
-	unsigned jump_step;
 	point before_jump_point;
-	bool is_jump_mode;
 	bool is_random_search;
 	unsigned vars_decr_times;
 	chrono::high_resolution_clock::time_point start_t;
@@ -90,10 +88,11 @@ protected:
 	string script_out_str;
 	string backdoor_file_name;
 	point known_backdoor;
-	unsigned rand_from;
-	unsigned rand_to;
-	unsigned rand_points;
 	random_device rd;
+	// iteretedHCVJ parameters
+	unsigned jump_lim;
+	unsigned jump_step;
+	bool is_jump_mode;
 };
 
 inline int base_local_search::getVarPos(const int val)

@@ -123,8 +123,9 @@ point igbfs::permutateRecordPoint()
 	return mod_point;
 }
 
-void igbfs::iteratedGBFS()
+void igbfs::iteratedHCVJ()
 {
+	cout << "iterated hill climbing with variables-based jump \n";
 	point start_point;
 	start_point.value.resize(vars.size());
 	for (auto x : start_point.value)
@@ -331,31 +332,46 @@ point igbfs::jumpPoint(point cur_point)
 
 void igbfs::findBackdoor()
 {
-	if (opt_alg == 0)
-		randSearchWholeSpace();
-	else if (opt_alg == 1)
-		randSearchReduceOneVar();
-	else if (opt_alg == 2)
-		simpleHillClimbing();
-	else if (opt_alg == 3)
-		steepestAscentHillClimbing();
-	else if (opt_alg == 4)
-		tabuSearch();
-	else if (opt_alg == 5)
-		one_plus_one();
-	else {
+	switch (opt_alg) {
+		case 0:
+			randSearchWholeSpace();
+			break;
+		case 1:
+			randSearchReduceOneVar();
+			break;
+		case 2:
+			simpleHillClimbing();
+			break;
+		case 3:
+			steepestAscentHillClimbing();
+			break;
+		case 4:
+			tabuSearch();
+			break;
+		case 5:
+			iteratedHCVJ();
+			break;
+		case 6:
+			one_plus_one();
+			break;
+		default:
+			cout << "Unknown opt_alg, 1+1 was chosen\n";
+			one_plus_one();
+			break;
+	}
+	/*else {
 		if ((!isKnownBackdoor()) && (rand_from > 0))
 			randSearch();
 		else if (!isKnownBackdoor())
-			iteratedGBFS();
+			
 		else if (isKnownBackdoor()) {
 			calculateEstimation(known_backdoor);
 			global_record_point = known_backdoor;
 			printGlobalRecordPoint();
 		}
-	}
+	}*/
 }
-
+/*
 void igbfs::randSearch()
 {
 	cout << "randSearch()\n";
@@ -389,8 +405,7 @@ void igbfs::randSearch()
 		if (is_break)
 			break;
 	}
-}
-
+}*/
 
 point igbfs::generateRandPoint(const unsigned point_var_count)
 {

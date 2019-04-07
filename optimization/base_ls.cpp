@@ -19,10 +19,7 @@ base_local_search::base_local_search() :
 	result_output_name(""),
 	script_out_str(""),
 	backdoor_file_name(""),
-	rand_from(0),
-	rand_to(0),
-	rand_points(0),
-	opt_alg(0),
+	opt_alg(6), // 1+1
 	total_func_calculations(0),
 	verbosity(0)
 {
@@ -245,8 +242,9 @@ bool base_local_search::isTimeExceeded()
 
 bool base_local_search::isEstTooLong() // for simple instances
 {
-	if (global_record_point.estimation / cpu_cores <= timeFromStart()) {
-		cout << "*** estimation / " << cpu_cores << " is less than elapsed time" << endl;
+	if ((global_record_point.estimation / cpu_cores / 2) <= timeFromStart()) {
+		// additionally divide by 2 for possible satisfiable instances
+		cout << "*** estimation / " << cpu_cores << " and /2 is less than elapsed time" << endl;
 		return true;
 	}
 	return false;
@@ -299,34 +297,17 @@ void base_local_search::parseParams(const int argc, char *argv[])
 			istringstream(res_str) >> opt_alg;
 		else if (strPrefix(par_str, "-cpu-lim=", res_str))
 			istringstream(res_str) >> cpu_lim;
-		else if (strPrefix(par_str, "-jump-lim", res_str))
-			istringstream(res_str) >> jump_lim;
 		else if (strPrefix(par_str, "-verb=", res_str))
 			istringstream(res_str) >> verbosity;
 		else if (strPrefix(par_str, "-backdoor=", res_str))
 			istringstream(res_str) >> backdoor_file_name;
-		else if (strPrefix(par_str, "-rand-from=", res_str))
-			istringstream(res_str) >> rand_from;
-		else if (strPrefix(par_str, "-rand-to=", res_str))
-			istringstream(res_str) >> rand_to;
-		else if (strPrefix(par_str, "-rand-points=", res_str))
-			istringstream(res_str) >> rand_points;
 		else if (par_str == "--solve")
 			is_solve = true;
-		else if (par_str == "--nojump")
-			is_jump_mode = false;
 		else if (cnf_name == "")
 			cnf_name = par_str;
 		else if (result_output_name == "")
 			result_output_name = par_str;
 	}
-
-	if ((rand_from > 0) && (!rand_to))
-		rand_to = rand_from;
-	if ((rand_to > 0) && (!rand_from))
-		rand_from = rand_to;
-	if ((rand_to > 0) && (!rand_points))
-		rand_points = 100;
 	
 	cout << "cnf name " << cnf_name << endl;
 	cout << "pcs name " << pcs_name << endl;
@@ -334,15 +315,10 @@ void base_local_search::parseParams(const int argc, char *argv[])
 	cout << "alias script name " << alias_script_name << endl;
 	cout << "opt_alg " << opt_alg << endl;
 	cout << "cpu lim " << cpu_lim << endl;
-	cout << "is_jump_mode " << is_jump_mode << endl;
-	cout << "jump lim " << jump_lim << endl;
 	cout << "is solve " << is_solve << endl;
 	cout << "verbosity " << verbosity << endl;
 	cout << "result_output_name " << result_output_name << endl;
 	cout << "backdoor_file_name " << backdoor_file_name << endl;
-	cout << "rand_to " << rand_to << endl;
-	cout << "rand_from " << rand_from << endl;
-	cout << "rand_points " << rand_points << endl;
 	
 	if (cnf_name == "") {
 		cerr << "cnf name is empty" << endl;
