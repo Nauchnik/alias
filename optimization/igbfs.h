@@ -17,19 +17,19 @@ public:
 	void backJump();
 	point permutateRecordPoint();
 	point randPermutateRecordPoint();
-	void GBFS(const point start_point);
+	//void GBFS(const point start_point);
 	void updateLocalRecord(point cur_point);
 	point jumpPoint(point cur_point);
 	vector<point> neighbors(point p);
 	//void randSearch();
 	void randSearchWholeSpace();
 	void randSearchReduceOneVar();
-	void simpleHillClimbing();
+	void simpleHillClimbing(point p = point());
 	void steepestAscentHillClimbing();
 	void tabuSearch();
 	void iteratedHCVJ(); // iterated hill climbing with variables-based jump
-	void one_plus_one();
-	void findBackdoor();
+	void onePlusOne();
+	int findBackdoor();
 	point generateRandPoint(const unsigned point_var_count);
 };
 

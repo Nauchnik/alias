@@ -19,8 +19,9 @@ base_local_search::base_local_search() :
 	result_output_name(""),
 	script_out_str(""),
 	backdoor_file_name(""),
-	opt_alg(6), // 1+1
+	opt_alg(5), // 1+1
 	total_func_calculations(0),
+	total_skipped_func_calculations(0),
 	verbosity(0)
 {
 	start_t = chrono::high_resolution_clock::now();
@@ -50,6 +51,35 @@ void base_local_search::loadVars()
 	cout << "search space variables number " << vars.size() << endl;
 }
 
+point base_local_search::pointFromUintVec(vector<unsigned> var_vec)
+{
+	point p;
+	p.value.resize(vars.size());
+	for (auto x : p.value)
+		x = false;
+	for (auto val : var_vec) {
+		int pos = getVarPos(val);
+		p.value[pos] = true;
+	}
+	return p;
+}
+
+vector<unsigned> base_local_search::uintVecFromPoint(point p)
+{
+	vector<unsigned> vec;
+	for (unsigned i = 0; i < p.value.size(); i++)
+		if (p.value[i])
+			vec.push_back(vars[i].value);
+	return vec;
+}
+
+void base_local_search::coutUintVec(vector<unsigned> vec)
+{
+	for (auto x : vec)
+		cout << x << " ";
+	cout << endl;
+}
+
 void base_local_search::loadBackdoor()
 {
 	if (backdoor_file_name != "") {
@@ -60,18 +90,18 @@ void base_local_search::loadBackdoor()
 		string str;
 		getline(ifile, str);
 		sstream << str;
+		vector<unsigned> var_vec;
 		int val;
-		known_backdoor.value.resize(vars.size());
-		for (auto x : known_backdoor.value)
-			x = false;
-		cout << "known backdoor : " << endl;
-		while (sstream >> val) {
-			cout << val << " ";
-			int pos = getVarPos(val);
-			known_backdoor.value[pos] = true;
-		}
-		cout << endl;
+		while (sstream >> val)
+			var_vec.push_back(val);
 		ifile.close();
+		cout << "known backdoor : " << endl;
+		coutUintVec(var_vec);
+		known_backdoor = pointFromUintVec(var_vec);
+		// calculate estimation for the given backdoor
+		calculateEstimation(known_backdoor);
+		global_record_point = known_backdoor;
+		printGlobalRecordPoint();
 	}
 }
 
@@ -254,6 +284,7 @@ void base_local_search::reportResult()
 {
 	stringstream sstream;
 	sstream << "Function calculations : " << total_func_calculations << endl;
+	sstream << "skipped Function calculations : " << total_skipped_func_calculations << endl;
 	sstream << "Wall time : " << timeFromStart() << endl;
 	sstream << "Backdoor (numeration from 1):" << endl;
 	sstream << global_record_point.getStr(vars);
@@ -331,34 +362,55 @@ void base_local_search::init()
 	loadVars();
 	loadBackdoor();
 	setGraphFileName();
-
 	cpu_cores = getCpuCores();
 }
 
 void base_local_search::calculateEstimation(point &cur_point)
 {
-	string command_str = getScriptCommand(ESTIMATE, cur_point);
-	if (verbosity > 1)
-		cout << "command_str " << command_str << endl;
-	
-	string out_str = getCmdOutput(command_str.c_str());
-	string bef_str = "SUCCESS, 0, 0, ";
-	size_t pos1 = out_str.find(bef_str);
-	if (pos1 != string::npos) {
-		size_t pos2 = pos1 + bef_str.size();
-		out_str = out_str.substr(pos2, out_str.size() - pos2);
+	string str = "";
+	for (auto x : cur_point.value)
+		str += x == true ? '1' : '0';
+	// don't calc again on the same point
+	if (isChecked(cur_point)) {
+		unordered_map<string, double>::iterator it;
+		it = checked_points.find(str);
+		cur_point.estimation = it->second;
+		total_skipped_func_calculations++;
+	}
+	else {
+		string command_str = getScriptCommand(ESTIMATE, cur_point);
 		if (verbosity > 1)
-			cout << "output : " << out_str << endl;
-		stringstream sstream;
-		sstream << out_str;
-		sstream >> cur_point.estimation;
+			cout << "command_str " << command_str << endl;
+		string out_str = getCmdOutput(command_str.c_str());
+		string bef_str = "SUCCESS, 0, 0, ";
+		size_t pos1 = out_str.find(bef_str);
+		if (pos1 != string::npos) {
+			size_t pos2 = pos1 + bef_str.size();
+			out_str = out_str.substr(pos2, out_str.size() - pos2);
+			if (verbosity > 1)
+				cout << "output : " << out_str << endl;
+			stringstream sstream;
+			sstream << out_str;
+			sstream >> cur_point.estimation;
+		}
+		checked_points.insert(pair<string, double>(str, cur_point.estimation));
+		if ((!is_jump_mode) && (!is_random_search)) {
+			for (unsigned j = 0; j < cur_point.value.size(); j++)
+				if (cur_point.value[j])
+					vars[j].calculations++;
+		}
+		total_func_calculations++;
 	}
-	if ((!is_jump_mode) && (!is_random_search)) {
-		for (unsigned j = 0; j < cur_point.value.size(); j++)
-			if (cur_point.value[j])
-				vars[j].calculations++;
-	}
-	total_func_calculations++;
+}
+
+bool base_local_search::isChecked(point p)
+{
+	string str = "";
+	for (auto x : p.value)
+		str += x == true ? '1' : '0';
+	if (checked_points.find(str) != checked_points.end())
+		return true;
+	return false;
 }
 
 bool base_local_search::solveInstance()

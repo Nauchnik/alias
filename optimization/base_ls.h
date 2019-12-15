@@ -15,6 +15,7 @@
 #include <set>
 #include <cmath>
 #include <random>
+#include <unordered_map>
 #include "point.h"
 
 const double DEFAULT_TIME_LIMIT = 3600;
@@ -43,6 +44,9 @@ public:
 	void init();
 	void loadVars();
 	void loadBackdoor();
+	point pointFromUintVec(vector<unsigned> var_vec);
+	vector<unsigned> uintVecFromPoint(point p);
+	void coutUintVec(vector<unsigned> vec);
 	vector<var> getAllCnfVars(const string filename);
 	vector<var> readVarsFromPcs(string pcs_name);
 	bool isEstTooLong();
@@ -51,20 +55,19 @@ public:
 	bool solveInstance();
 	void reportResult();
 	void calculateEstimation(point &cur_point);
+	bool isChecked(point p);
 	string getScriptCommand(const int mode, const point cur_point);
 	bool isKnownBackdoor();
 	int getVarPos(const int val);
-	inline bool isChecked(const point cur_point) {
-		return (find(checked_points.begin(), checked_points.end(), cur_point) != checked_points.end());
-	}
 	void printGlobalRecordPoint();
 	string printUintVector(vector<unsigned>);
 	
 	int total_func_calculations;
+	int total_skipped_func_calculations;
 
 protected:
 	vector<var> vars;
-	vector<point> checked_points;
+	unordered_map<string, double> checked_points;
 	unsigned skipped_points_count;
 	unsigned interrupted_points_count;
 	point global_record_point;
