@@ -43,6 +43,10 @@ point igbfs::permutateRecordPoint()
 			mod_vars.push_back(vars[i]);
 		else 
 			extra_vars.push_back(vars[i]);
+	cout << "point before mod (cur global min) : ";
+	for (auto x : global_record_point.value)
+	    cout << x << " ";
+	cout << endl;
 	// get additional vars with low calculations
 	vector<var> add_calc_vars = extra_vars;
 	sort(add_calc_vars.begin(), add_calc_vars.end(), compareByCalculations);
@@ -131,7 +135,7 @@ void igbfs::iteratedHCVJ()
 			writeToGraphFile(sstream.str());
 			sstream.str(""); sstream.clear();
 		}
-		simpleHillClimbing(start_point);
+		HCVJ(start_point);
 		jumps_count++;
 		if (isTimeExceeded() || isEstTooLong() || (jumps_count > jump_lim)) {
 			cout << "*** interrupt the search" << endl;
@@ -153,6 +157,7 @@ void igbfs::updateLocalRecord(point cur_point)
 {
 	local_record_point = cur_point;
 	
+	stringstream sstream;
 	if (local_record_point.estimation < global_record_point.estimation) {
 		point prev_global_record_point = global_record_point;
 		global_record_point = local_record_point;
@@ -193,9 +198,10 @@ void igbfs::updateLocalRecord(point cur_point)
 		if (verbosity > 1)
 			cout << "* new local_record_estimation " << local_record_point.estimation <<
 				" with weight " << local_record_point.weight() << endl;
+		sstream << "\t"; // update of local minimum after, e.g. HCVJ() jump
 	}
 
-	stringstream sstream;
+	
 	unsigned tfsi = (unsigned)timeFromStart();
 	sstream << global_record_point.weight() << " " << global_record_point.estimation << " " <<
 		global_record_point.estimation / cpu_cores << " " << tfsi << " " << total_func_calculations << 
@@ -373,6 +379,78 @@ void igbfs::randSearchReduceOneVar()
 	}
 }
 
+void igbfs::HCVJ(const point start_point)
+{
+    bool is_record_updated;
+    vars_decr_times = 0;
+    jump_step = INITIAL_JUMP_STEP;
+    local_record_point = start_point;
+    local_record_point.estimation = HUGE_VAL;
+
+    if (verbosity > 1)
+	cout << "GBFS() start" << endl;
+    
+    bool is_break = false;
+    for (;;) {
+	is_record_updated = false;
+	vector<unsigned> changing_vars;
+	for (unsigned i = 0; i < local_record_point.value.size(); i++)
+	    changing_vars.push_back(i);
+	random_shuffle(changing_vars.begin(), changing_vars.end());
+	size_t changing_vars_count = changing_vars.size();
+	//cout << "new start point " << endl;
+	for (int i = -1; i < changing_vars_count; i++) { // i == -1 is required to check a point itself
+	    if (isTimeExceeded() || isEstTooLong()) {
+		is_break = true;
+		break; // if time is up, then stop GBFS
+	    }
+	    point cur_point = local_record_point;
+	    if (i >= 0)
+		cur_point.value[changing_vars[i]] = local_record_point.value[changing_vars[i]] ? false : true;
+	    if  (isChecked(cur_point)) {
+		skipped_points_count++;
+		continue;
+	    }
+	    calculateEstimation(cur_point);
+
+	    if (cur_point.estimation <= 0) {
+		if (verbosity > 0)
+		    cout << "estimation for a point is worse than the current record, interrupt calculations" << endl;
+		interrupted_points_count++;
+		if (is_jump_mode) {
+		    backJump();
+		    is_record_updated = true;
+		    break;
+		}
+		else
+		    continue;
+	    }
+
+	    if (cur_point.estimation < local_record_point.estimation) {
+		is_record_updated = true;
+		updateLocalRecord(cur_point);
+		break;
+	    }
+	    else if ( (is_jump_mode) && (i == -1) ) { // next point in jump mode is worse than previous
+		cout << "backjumping cause of i == -1" << endl;
+		backJump();
+		is_record_updated = true;
+		break;
+	    }
+	}
+	
+	if (is_break)
+	    break; // if time is up, then stop GBFS
+
+	if (!is_record_updated) { // if a local minimum has been found, then stop GBFS
+	    cout << "a local minimum has been found, stop GBFS" << endl;
+	    break;
+	}
+    }
+
+    cout << "HCVJ() end" << endl << endl;
+}
+
 vector<point> igbfs::neighbors(point p)
 {
 	vector<point> neighbors(p.value.size());
@@ -385,20 +463,19 @@ vector<point> igbfs::neighbors(point p)
 	return neighbors;
 }
 
+
 void igbfs::simpleHillClimbing( point p )
 {
 	cout << "simpleHillClimbing()\n";
 	is_jump_mode = false;
 	is_random_search = false;
 	
-	bool isSubSearch = false;
 	point neigh_center;
 	if (p.value.size() > 0) { // if a start point is given, use it
 		neigh_center = p;
 		cout << "start point is given : \n";
 		vector<unsigned> vec = uintVecFromPoint(neigh_center);
 		coutUintVec(vec);
-		isSubSearch = true;
 	}
 	else {
 		// else use as the start point the set of all variables
@@ -406,8 +483,10 @@ void igbfs::simpleHillClimbing( point p )
 		for (auto x : neigh_center.value)
 			x = true;
 	}
-	calculateEstimation(neigh_center);
-	updateLocalRecord(neigh_center);
+	if (!isChecked(neigh_center)) {
+		calculateEstimation(neigh_center);
+		updateLocalRecord(neigh_center);
+	}
 	
 	bool is_break = false;
 	for(;;) {
@@ -424,10 +503,8 @@ void igbfs::simpleHillClimbing( point p )
 				break;
 			}
 			if (isTimeExceeded() || isEstTooLong()) {
-				if (!isSubSearch) {
-					cout << "*** interrupt the search" << endl;
-					writeToGraphFile("--- interrupt");
-				}
+				cout << "*** interrupt the search" << endl;
+				writeToGraphFile("--- interrupt");
 				is_break = true;
 				break;
 			}
@@ -435,10 +512,8 @@ void igbfs::simpleHillClimbing( point p )
 		if (is_break)
 			break;
 		if (!is_local_record_updated) {
-			if (!isSubSearch) {
-				cout << "*** interrupt the search: local minimum" << endl;
-				writeToGraphFile("--- interrupt: local minimum");
-			}
+			cout << "*** interrupt the search: local minimum" << endl;
+			writeToGraphFile("--- interrupt: local minimum");
 			break; // local minimum
 		}
 	}

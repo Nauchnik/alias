@@ -21,7 +21,7 @@ public:
 	void updateLocalRecord(point cur_point);
 	point jumpPoint(point cur_point);
 	vector<point> neighbors(point p);
-	//void randSearch();
+	void HCVJ(const point start_point);
 	void randSearchWholeSpace();
 	void randSearchReduceOneVar();
 	void simpleHillClimbing(point p = point());
