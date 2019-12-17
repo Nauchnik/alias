@@ -30,8 +30,14 @@ void writeUsage()
 	cout << "-script      = <string> (default: ALIAS.py) [OPTIONAL]   ALIAS script name \n";
 	cout << "-pcs         = <string>.                    [OPTIONAL]   Name of a PCS (Parameter Configuration Space) file with a start point \n";
 	cout << "-opt-alg     = <unsigned> (default: 1+1)    [OPTIONAL]   Optimization algorithm. \n";
-	cout << "	0: random search in the whole space(), 1: random search reduce size by one, 2: simple hill climbing, 3: steepest ascent hill climbing \n";
-	cout << "	4: tabu search, 5: iterated hill climbing with variables-based jump; 6: (1+1)-EA \n";
+	cout << "	0: random search in the whole space" << endl;
+	cout << "	1: random search reduce size by one" << endl;
+	cout << "	2: simple hill climbing (add/remove)" << endl;
+	cout << "	3: steepest ascent hill climbing (add/remove)" << endl;
+	cout << "	4: tabu search (add/remove)" << endl;
+	cout << "	5: (1+1)-EA" << endl;
+	cout << "	6: iterated hill climbing with variables-based jump" << endl;
+	cout << "	7: (1+1)-EA with simple hill climbing (add/remove/replace)" << endl;
 	cout << "-backdoor    = <string>                     [OPTIONAL]   Name of a file which contains a backdoor (numeration from 1) \n";
 	cout << "--solve                                     [OPTIONAL]   Enable solving of a given instance by a found (or a given) backdoor \n";
 	cout << "\n" << "MAIN OPTIONS: \n \n";

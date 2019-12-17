@@ -370,7 +370,6 @@ void base_local_search::calculateEstimation(point &cur_point)
 	string str = "";
 	for (auto x : cur_point.value)
 		str += x == true ? '1' : '0';
-	// don't calc again on the same point
 	if (isChecked(cur_point)) {
 		unordered_map<string, double>::iterator it;
 		it = checked_points.find(str);
@@ -381,6 +380,7 @@ void base_local_search::calculateEstimation(point &cur_point)
 		string command_str = getScriptCommand(ESTIMATE, cur_point);
 		if (verbosity > 1)
 			cout << "command_str " << command_str << endl;
+
 		string out_str = getCmdOutput(command_str.c_str());
 		string bef_str = "SUCCESS, 0, 0, ";
 		size_t pos1 = out_str.find(bef_str);

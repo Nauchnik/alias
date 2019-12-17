@@ -44,9 +44,7 @@ point igbfs::permutateRecordPoint()
 		else 
 			extra_vars.push_back(vars[i]);
 	cout << "point before mod (cur global min) : ";
-	for (auto x : global_record_point.value)
-	    cout << x << " ";
-	cout << endl;
+	cout << global_record_point.getStr(vars);
 	// get additional vars with low calculations
 	vector<var> add_calc_vars = extra_vars;
 	sort(add_calc_vars.begin(), add_calc_vars.end(), compareByCalculations);
@@ -95,9 +93,7 @@ point igbfs::permutateRecordPoint()
 		mod_point.value[pos] = true;
 	}
 	cout << "mod_point : " << endl;
-	for (auto x : mod_point.value)
-		cout << x << " ";
-	cout << endl;
+	cout << mod_point.getStr(vars);
 	
 	if (mod_point.weight() - ADD_VARS_CALC - ADD_VARS_RECORDS != global_record_point.weight()) {
 		cerr << "mod_point weight " << mod_point.weight() << endl;
@@ -128,10 +124,10 @@ void igbfs::iteratedHCVJ()
 	global_record_point.estimation = HUGE_VAL;
 	unsigned jumps_count = 0;
 	for (;;) {
-		cout << endl << "*** GBFS iteration # " << jumps_count << endl;
+		cout << endl << "*** HCVJ iteration # " << jumps_count << endl;
 		if (jumps_count > 0) {
 			stringstream sstream;
-			sstream << "--- GBFS iteration # " << jumps_count;
+			sstream << "--- HCVJ iteration # " << jumps_count;
 			writeToGraphFile(sstream.str());
 			sstream.str(""); sstream.clear();
 		}
@@ -193,19 +189,20 @@ void igbfs::updateLocalRecord(point cur_point)
 				cout << x.calculations << " ";
 			cout << endl;
 		}
+		sstream << global_record_point.weight() << " " << global_record_point.estimation << " " <<
+			global_record_point.estimation / cpu_cores << " " << (unsigned)timeFromStart() << " " << 
+			total_func_calculations << " " << total_skipped_func_calculations;
 	}
 	else {
 		if (verbosity > 1)
 			cout << "* new local_record_estimation " << local_record_point.estimation <<
 				" with weight " << local_record_point.weight() << endl;
-		sstream << "\t"; // update of local minimum after, e.g. HCVJ() jump
+		// update of local minimum after, e.g. HCVJ() jump
+		sstream << "\t" << local_record_point.weight() << " " << local_record_point.estimation << " " <<
+			local_record_point.estimation / cpu_cores << " " << (unsigned)timeFromStart() << " " << 
+			total_func_calculations << " " << total_skipped_func_calculations;
 	}
 
-	
-	unsigned tfsi = (unsigned)timeFromStart();
-	sstream << global_record_point.weight() << " " << global_record_point.estimation << " " <<
-		global_record_point.estimation / cpu_cores << " " << tfsi << " " << total_func_calculations << 
-		" " << total_skipped_func_calculations;
 	writeToGraphFile(sstream.str());
 	
 	if ( (is_jump_mode) && (cur_point.weight() > MIN_VARS_JUMP_FROM) && (vars_decr_times >= 4) )
@@ -274,6 +271,9 @@ int igbfs::findBackdoor()
 		break;
 	case 6:
 		iteratedHCVJ();
+		break;
+	case 7:
+		onePlusOneSimpleHillClimbing();
 		break;
 	default:
 		cout << "Unknown opt_alg, 1+1 was chosen\n";
@@ -379,7 +379,7 @@ void igbfs::randSearchReduceOneVar()
 	}
 }
 
-void igbfs::HCVJ(const point start_point)
+void igbfs::HCVJ(point start_point)
 {
     bool is_record_updated;
     vars_decr_times = 0;
@@ -387,65 +387,67 @@ void igbfs::HCVJ(const point start_point)
     local_record_point = start_point;
     local_record_point.estimation = HUGE_VAL;
 
-    if (verbosity > 1)
-	cout << "GBFS() start" << endl;
+	cout << "HCVJ() start from point : " << endl;
+	cout << start_point.getStr(vars);
     
     bool is_break = false;
     for (;;) {
-	is_record_updated = false;
-	vector<unsigned> changing_vars;
-	for (unsigned i = 0; i < local_record_point.value.size(); i++)
-	    changing_vars.push_back(i);
-	random_shuffle(changing_vars.begin(), changing_vars.end());
-	size_t changing_vars_count = changing_vars.size();
-	//cout << "new start point " << endl;
-	for (int i = -1; i < changing_vars_count; i++) { // i == -1 is required to check a point itself
-	    if (isTimeExceeded() || isEstTooLong()) {
-		is_break = true;
-		break; // if time is up, then stop GBFS
-	    }
-	    point cur_point = local_record_point;
-	    if (i >= 0)
-		cur_point.value[changing_vars[i]] = local_record_point.value[changing_vars[i]] ? false : true;
-	    if  (isChecked(cur_point)) {
-		skipped_points_count++;
-		continue;
-	    }
-	    calculateEstimation(cur_point);
+		is_record_updated = false;
+		vector<unsigned> changing_vars;
+		for (unsigned i = 0; i < local_record_point.value.size(); i++)
+			changing_vars.push_back(i);
+		random_shuffle(changing_vars.begin(), changing_vars.end());
+		int changing_vars_count = changing_vars.size();
+		for (int i = -1; i < changing_vars_count; i++) { // i == -1 is required to check a point itself
+			cout << i << endl;
+			if (isTimeExceeded() || isEstTooLong()) {
+				is_break = true;
+				break; // if time is up, then stop GBFS
+			}
+			point cur_point = local_record_point;
+			if (i >= 0)
+				cur_point.value[changing_vars[i]] = local_record_point.value[changing_vars[i]] ? false : true;
+			if  (isChecked(cur_point)) {
+				skipped_points_count++;
+				continue;
+			}
+			//cout << "point : " << endl;
+			//cout << cur_point.getStr(vars);
+			calculateEstimation(cur_point);
 
-	    if (cur_point.estimation <= 0) {
-		if (verbosity > 0)
-		    cout << "estimation for a point is worse than the current record, interrupt calculations" << endl;
-		interrupted_points_count++;
-		if (is_jump_mode) {
-		    backJump();
-		    is_record_updated = true;
-		    break;
+			if (cur_point.estimation <= 0) {
+				if (verbosity > 0)
+					cout << "estimation for a point is worse than the current record, interrupt calculations" << endl;
+				interrupted_points_count++;
+				if (is_jump_mode) {
+					backJump();
+					is_record_updated = true;
+					break;
+				}
+				else
+					continue;
+			}
+
+			if (cur_point.estimation < local_record_point.estimation) {
+				is_record_updated = true;
+				updateLocalRecord(cur_point);
+				break;
+			}
+			else if ( (is_jump_mode) && (i == -1) ) { // next point in jump mode is worse than previous
+				cout << "backjumping cause of i == -1" << endl;
+				backJump();
+				is_record_updated = true;
+				break;
+			}
 		}
-		else
-		    continue;
-	    }
+		
+		if (is_break)
+			break; // if time is up, then stop GBFS
 
-	    if (cur_point.estimation < local_record_point.estimation) {
-		is_record_updated = true;
-		updateLocalRecord(cur_point);
-		break;
-	    }
-	    else if ( (is_jump_mode) && (i == -1) ) { // next point in jump mode is worse than previous
-		cout << "backjumping cause of i == -1" << endl;
-		backJump();
-		is_record_updated = true;
-		break;
-	    }
-	}
-	
-	if (is_break)
-	    break; // if time is up, then stop GBFS
-
-	if (!is_record_updated) { // if a local minimum has been found, then stop GBFS
-	    cout << "a local minimum has been found, stop GBFS" << endl;
-	    break;
-	}
+		if (!is_record_updated) { // if a local minimum has been found, then stop HCVJ
+			cout << "a local minimum has been found, stop HCVJ" << endl;
+			break;
+		}
     }
 
     cout << "HCVJ() end" << endl << endl;
@@ -462,7 +464,6 @@ vector<point> igbfs::neighbors(point p)
 	random_shuffle(neighbors.begin(), neighbors.end());
 	return neighbors;
 }
-
 
 void igbfs::simpleHillClimbing( point p )
 {
@@ -502,7 +503,8 @@ void igbfs::simpleHillClimbing( point p )
 				is_local_record_updated = true;
 				break;
 			}
-			if (isTimeExceeded() || isEstTooLong()) {
+			if (isTimeExceeded() || isEstTooLong())
+			{
 				cout << "*** interrupt the search" << endl;
 				writeToGraphFile("--- interrupt");
 				is_break = true;
@@ -618,7 +620,7 @@ void igbfs::tabuSearch()
 	}
 }
 
-void igbfs::onePlusOne()
+void igbfs::onePlusOne(int fcalc_lim, double time_lim)
 {
 	cout << "one_plus_one()\n";
 	is_jump_mode = false;
@@ -636,6 +638,8 @@ void igbfs::onePlusOne()
 	mt19937 mt(time(0));
 	uniform_real_distribution<double> dist(0, 1);
 	double prob = 1 / (double)total_var_count;
+	chrono::high_resolution_clock::time_point update_start_t;
+	int update_fcalc;
 
 	for (;;) {
 		point candidate_point = neigh_center;
@@ -652,6 +656,8 @@ void igbfs::onePlusOne()
 		if (candidate_point.estimation < global_record_point.estimation) {
 			updateLocalRecord(candidate_point);
 			neigh_center = candidate_point;
+			update_start_t = chrono::high_resolution_clock::now();
+			update_fcalc = total_func_calculations;
 		}
 
 		if (isTimeExceeded() || isEstTooLong()) {
@@ -659,5 +665,23 @@ void igbfs::onePlusOne()
 			writeToGraphFile("--- interrupt");
 			break;
 		}
+		chrono::high_resolution_clock::time_point cur_t = chrono::high_resolution_clock::now();
+		chrono::duration<double> time_span = chrono::duration_cast<chrono::duration<double>>(cur_t - update_start_t);
+		if ( ((fcalc_lim > 0) && (total_func_calculations - update_fcalc >= fcalc_lim)) ||
+			 (time_lim > 0) && (time_span.count() >= time_lim) )
+		{
+			writeToGraphFile("--- interrupt (1+1)-EA due to limit");
+			stringstream sstream;
+			sstream << "\t" << global_record_point.weight() << " " << global_record_point.estimation << " " <<
+				global_record_point.estimation / cpu_cores << " " << (unsigned)timeFromStart() << " " <<
+				total_func_calculations << " " << total_skipped_func_calculations;
+			break;
+		}
 	}
+}
+
+void igbfs::onePlusOneSimpleHillClimbing()
+{
+	onePlusOne(300, 3600); // max 300 function calculations or 3600 seconds without updates of global min
+	simpleHillClimbing(global_record_point);
 }
