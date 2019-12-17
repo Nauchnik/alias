@@ -20,11 +20,11 @@ public:
 	//void GBFS(const point start_point);
 	void updateLocalRecord(point cur_point);
 	point jumpPoint(point cur_point);
-	vector<point> neighbors(point p);
+	vector<point> neighbors(point p, int neigh_type = 0);
 	void HCVJ(point start_point);
 	void randSearchWholeSpace();
 	void randSearchReduceOneVar();
-	void simpleHillClimbing(point p = point());
+	void simpleHillClimbing(point p = point(), int neigh_type = 0);
 	void steepestAscentHillClimbing();
 	void tabuSearch();
 	void iteratedHCVJ(); // iterated hill climbing with variables-based jump

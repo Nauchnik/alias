@@ -453,19 +453,50 @@ void igbfs::HCVJ(point start_point)
     cout << "HCVJ() end" << endl << endl;
 }
 
-vector<point> igbfs::neighbors(point p)
+vector<point> igbfs::neighbors(point p, int neigh_type)
 {
 	vector<point> neighbors(p.value.size());
+	// add 'add/remove' points
 	for (unsigned i = 0; i < p.value.size(); i++) {
 		point new_p = p;
 		new_p.value[i] = p.value[i] == true ? false : true;
 		neighbors[i] = new_p;
 	}
+	if (neigh_type == 1) { // add 'replace' points
+		cout << "cur center point : " << endl;
+		for (unsigned j = 0; j < p.value.size(); j++)
+			cout << (int)p.value[j];
+		cout << endl;
+		vector<bool> p_var_indecies, notp_var_indecies;
+		for (unsigned i = 0; i < p.value.size(); i++)
+			if (p.value[i])
+				p_var_indecies.push_back(i);
+			else
+				notp_var_indecies.push_back(i);
+		cout << "p_var_indecies size " << p_var_indecies.size() << endl;
+		cout << "notp_var_indecies size " << notp_var_indecies.size() << endl;
+		int k = 0;
+		cout << "first 10 replace points : " << endl;
+		for (auto x : p_var_indecies)
+			for (auto y : notp_var_indecies) {
+				point new_p = p;
+				new_p.value[x] = false;
+				new_p.value[y] = true;
+				neighbors.push_back(new_p);
+				if (k<10) {
+					for (unsigned j = 0; j < new_p.value.size(); j++)
+						cout << (int)new_p.value[j];
+					cout << endl;
+					k++;
+				}
+			}
+		cout << "neighbors size " << neighbors.size();
+	}
 	random_shuffle(neighbors.begin(), neighbors.end());
 	return neighbors;
 }
 
-void igbfs::simpleHillClimbing( point p )
+void igbfs::simpleHillClimbing( point p, int neigh_type )
 {
 	cout << "simpleHillClimbing()\n";
 	is_jump_mode = false;
@@ -492,7 +523,7 @@ void igbfs::simpleHillClimbing( point p )
 	bool is_break = false;
 	for(;;) {
 		bool is_local_record_updated = false;
-		vector<point> neighbors_points = neighbors(neigh_center);
+		vector<point> neighbors_points = neighbors(neigh_center, neigh_type);
 		for (auto neighbor : neighbors_points) {
 			calculateEstimation(neighbor);
 			if (neighbor.estimation <= 0)
@@ -683,5 +714,5 @@ void igbfs::onePlusOne(int fcalc_lim, double time_lim)
 void igbfs::onePlusOneSimpleHillClimbing()
 {
 	onePlusOne(300, 3600); // max 300 function calculations or 3600 seconds without updates of global min
-	simpleHillClimbing(global_record_point);
+	simpleHillClimbing(global_record_point, 1);
 }
