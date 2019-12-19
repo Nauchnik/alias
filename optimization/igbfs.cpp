@@ -455,19 +455,30 @@ void igbfs::HCVJ(point start_point)
 
 vector<point> igbfs::neighbors(point p, int neigh_type)
 {
-	vector<point> neighbors(p.value.size());
+	vector<point> neighbors, remove_neighbors, add_neighbors, replace_neighbors;
 	// add 'add/remove' points
 	for (unsigned i = 0; i < p.value.size(); i++) {
 		point new_p = p;
-		new_p.value[i] = p.value[i] == true ? false : true;
-		neighbors[i] = new_p;
+		//new_p.value[i] = p.value[i] == true ? false : true;
+		if (p.value[i] == true) {
+		    new_p.value[i] = false;
+		    remove_neighbors.push_back(new_p);
+		}
+		else if (p.value[i] == false) {
+		    new_p.value[i] = true;
+		    add_neighbors.push_back(new_p);
+		}
 	}
+	for (auto x : remove_neighbors)
+	    neighbors.push_back(x);
+	for (auto x : add_neighbors)
+	    neighbors.push_back(x);
 	if (neigh_type == 1) { // add 'replace' points
 		cout << "cur center point : " << endl;
 		for (unsigned j = 0; j < p.value.size(); j++)
 			cout << (int)p.value[j];
 		cout << endl;
-		vector<bool> p_var_indecies, notp_var_indecies;
+		vector<int> p_var_indecies, notp_var_indecies;
 		for (unsigned i = 0; i < p.value.size(); i++)
 			if (p.value[i])
 				p_var_indecies.push_back(i);
@@ -475,24 +486,40 @@ vector<point> igbfs::neighbors(point p, int neigh_type)
 				notp_var_indecies.push_back(i);
 		cout << "p_var_indecies size " << p_var_indecies.size() << endl;
 		cout << "notp_var_indecies size " << notp_var_indecies.size() << endl;
+		cout << "p_var_indecies : " << endl;
+		for (auto x : p_var_indecies)
+			cout << int(x);
+		cout << endl;
+		cout << "notp_var_indecies : " << endl;
+		for (auto x : notp_var_indecies)
+			cout << int(x);
+		cout << endl;
 		int k = 0;
 		cout << "first 10 replace points : " << endl;
-		for (auto x : p_var_indecies)
+		for (auto x : p_var_indecies) {
 			for (auto y : notp_var_indecies) {
 				point new_p = p;
 				new_p.value[x] = false;
 				new_p.value[y] = true;
-				neighbors.push_back(new_p);
-				if (k<10) {
+				replace_neighbors.push_back(new_p);
+				if (k < 10) {
 					for (unsigned j = 0; j < new_p.value.size(); j++)
 						cout << (int)new_p.value[j];
 					cout << endl;
 					k++;
 				}
 			}
-		cout << "neighbors size " << neighbors.size();
+		}
+		cout << "neighbors size " << neighbors.size() << endl;
 	}
-	random_shuffle(neighbors.begin(), neighbors.end());
+	random_shuffle(remove_neighbors.begin(), remove_neighbors.end());
+	random_shuffle(add_neighbors.begin(), add_neighbors.end());
+	random_shuffle(replace_neighbors.begin(), replace_neighbors.end());
+	neighbors = remove_neighbors;
+	for (auto x : add_neighbors)
+		neighbors.push_back(x);
+	for (auto x : replace_neighbors)
+		neighbors.push_back(x);
 	return neighbors;
 }
 
@@ -669,8 +696,8 @@ void igbfs::onePlusOne(int fcalc_lim, double time_lim)
 	mt19937 mt(time(0));
 	uniform_real_distribution<double> dist(0, 1);
 	double prob = 1 / (double)total_var_count;
-	chrono::high_resolution_clock::time_point update_start_t;
-	int update_fcalc;
+	chrono::high_resolution_clock::time_point update_start_t = chrono::high_resolution_clock::now();
+	int update_fcalc = -1;
 
 	for (;;) {
 		point candidate_point = neigh_center;
@@ -698,14 +725,16 @@ void igbfs::onePlusOne(int fcalc_lim, double time_lim)
 		}
 		chrono::high_resolution_clock::time_point cur_t = chrono::high_resolution_clock::now();
 		chrono::duration<double> time_span = chrono::duration_cast<chrono::duration<double>>(cur_t - update_start_t);
-		if ( ((fcalc_lim > 0) && (total_func_calculations - update_fcalc >= fcalc_lim)) ||
-			 (time_lim > 0) && (time_span.count() >= time_lim) )
+		if ( (update_fcalc > 0) && 
+		     ( ((fcalc_lim > 0) && (total_func_calculations - update_fcalc >= fcalc_lim)) ||
+			 (time_lim > 0) && (time_span.count() >= time_lim) ) )
 		{
 			writeToGraphFile("--- interrupt (1+1)-EA due to limit");
 			stringstream sstream;
 			sstream << "\t" << global_record_point.weight() << " " << global_record_point.estimation << " " <<
 				global_record_point.estimation / cpu_cores << " " << (unsigned)timeFromStart() << " " <<
 				total_func_calculations << " " << total_skipped_func_calculations;
+			writeToGraphFile(sstream.str());
 			break;
 		}
 	}
