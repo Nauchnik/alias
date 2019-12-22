@@ -11,10 +11,12 @@ using namespace std;
 
 struct var
 {
+	unsigned value;
 	unsigned global_records;
 	unsigned calculations;
-	unsigned value;
-
+	double estimation; // value of the objective function if this var is added/removed
+	bool is_add; // is added var (for partial replace neighborhoods)
+	
 	bool operator==(const var a)
 	{
 		return ((*this).value == a.value);

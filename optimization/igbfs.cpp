@@ -6,12 +6,12 @@
 #include <iterator>
 #include <set>
 
-bool compareByCalculations(const var &a, const var &b)
+bool compareByVarCalculations(const var &a, const var &b)
 {
 	return a.calculations < b.calculations;
 }
 
-bool compareByRecords(const var &a, const var &b)
+bool compareByVarRecords(const var &a, const var &b)
 {
 	return a.global_records < b.global_records;
 }
@@ -19,6 +19,11 @@ bool compareByRecords(const var &a, const var &b)
 bool compareByVarValue(const var &a, const var &b)
 {
 	return a.value < b.value;
+}
+
+bool compareByVarEstimation(const var &a, const var &b)
+{
+	return a.estimation < b.estimation;
 }
 
 void igbfs::backJump() {
@@ -47,7 +52,7 @@ point igbfs::permutateRecordPoint()
 	cout << global_record_point.getStr(vars);
 	// get additional vars with low calculations
 	vector<var> add_calc_vars = extra_vars;
-	sort(add_calc_vars.begin(), add_calc_vars.end(), compareByCalculations);
+	sort(add_calc_vars.begin(), add_calc_vars.end(), compareByVarCalculations);
 	cout << "add_calc_vars sorted by calculations : " << endl;
 	for (auto x : add_calc_vars)
 		cout << x.calculations << " ";
@@ -64,7 +69,7 @@ point igbfs::permutateRecordPoint()
 	cout << "extra_vars_wout_add_calc size " << extra_vars_wout_add_calc.size() << endl;
 	// get additional vars with high global records
 	vector<var> add_records_vars = extra_vars_wout_add_calc;
-	sort(add_records_vars.begin(), add_records_vars.end(), compareByRecords);
+	sort(add_records_vars.begin(), add_records_vars.end(), compareByVarRecords);
 	reverse(begin(add_records_vars), end(add_records_vars));
 	cout << "add_records_vars sorted (reverse) by records : " << endl;
 	for (auto x : add_records_vars)
@@ -273,6 +278,9 @@ int igbfs::findBackdoor()
 		iteratedHCVJ();
 		break;
 	case 7:
+		simpleHillClimbingAddRemovePartialRaplace();
+		break;
+	case 8:
 		onePlusOneSimpleHillClimbing();
 		break;
 	default:
@@ -523,11 +531,65 @@ vector<point> igbfs::neighbors(point p, int neigh_type)
 	return neighbors;
 }
 
+bool igbfs::processNeghborhood(vector<point> neighbors_points, point &neigh_center, 
+	                           bool &is_break, vector<var> &add_remove_vars, bool is_add_remove_vars_req)
+{
+	bool is_local_record_updated = false;
+	is_break = false;
+	vector<unsigned> center_uint_vec = uintVecFromPoint(neigh_center);
+	for (auto neighbor : neighbors_points) {	
+		calculateEstimation(neighbor);
+		if (neighbor.estimation <= 0)
+			continue;
+		if (is_add_remove_vars_req) {
+			// find diff var
+			vector<unsigned> diff;
+			vector<unsigned> neghbor_uint_vec = uintVecFromPoint(neighbor);
+			var v;
+			v.value = 0; // var values start from 1, so 0 is an impossible value
+			set_difference(center_uint_vec.begin(), center_uint_vec.end(),
+				neghbor_uint_vec.begin(), neghbor_uint_vec.end(),
+				inserter(diff, diff.begin()));
+			if (diff.size() == 1) {
+				v.value = diff[0];
+				v.is_add = false;
+			}
+			else if (diff.size() == 0) {
+				set_difference(neghbor_uint_vec.begin(), neghbor_uint_vec.end(),
+					center_uint_vec.begin(), center_uint_vec.end(),
+					inserter(diff, diff.begin()));
+				if (diff.size() == 1) {
+					v.value = diff[0];
+					v.is_add = true;
+				}
+			}
+			if (v.value > 0) {
+				v.estimation = neighbor.estimation;
+				add_remove_vars.push_back(v);
+			}
+		}
+		if (neighbor.estimation < global_record_point.estimation) {
+			updateLocalRecord(neighbor);
+			neigh_center = neighbor;
+			is_local_record_updated = true;
+			break;
+		}
+		if (isTimeExceeded() || isEstTooLong()) {
+			cout << "*** interrupt the search" << endl;
+			writeToGraphFile("--- interrupt");
+			is_break = true;
+			break;
+		}
+	}
+	return is_local_record_updated;
+}
+
 void igbfs::simpleHillClimbing( point p, int neigh_type )
 {
 	cout << "simpleHillClimbing()\n";
 	is_jump_mode = false;
 	is_random_search = false;
+	vector<var> add_remove_vars;
 	
 	point neigh_center;
 	if (p.value.size() > 0) { // if a start point is given, use it
@@ -561,8 +623,7 @@ void igbfs::simpleHillClimbing( point p, int neigh_type )
 				is_local_record_updated = true;
 				break;
 			}
-			if (isTimeExceeded() || isEstTooLong())
-			{
+			if (isTimeExceeded() || isEstTooLong()) {
 				cout << "*** interrupt the search" << endl;
 				writeToGraphFile("--- interrupt");
 				is_break = true;
@@ -740,8 +801,107 @@ void igbfs::onePlusOne(int fcalc_lim, double time_lim)
 	}
 }
 
+void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
+{
+	cout << "simpleHillClimbingAddRemovePartialRaplace()\n";
+	is_jump_mode = false;
+	is_random_search = false;
+	vector<var> add_remove_vars;
+
+	point neigh_center;
+	if (p.value.size() > 0) { // if a start point is given, use it
+		neigh_center = p;
+		cout << "start point is given : \n";
+		vector<unsigned> vec = uintVecFromPoint(neigh_center);
+		coutUintVec(vec);
+	}
+	else {
+		// else use as the start point the set of all variables
+		neigh_center.value.resize(vars.size());
+		for (auto x : neigh_center.value)
+			x = true;
+	}
+	if (!isChecked(neigh_center)) {
+		calculateEstimation(neigh_center);
+		updateLocalRecord(neigh_center);
+	}
+	
+	bool is_break = false;
+	for (;;) {
+		bool is_local_record_updated = false;
+		vector<point> neighbors_points = neighbors(neigh_center, 0); // add/remove first
+		vector<var> add_remove_vars;
+		is_local_record_updated = processNeghborhood(neighbors_points, neigh_center, is_break, add_remove_vars, true);
+		if (is_break)
+			break;
+		if (is_local_record_updated)
+			continue;
+		
+		cout << endl << "cur bkv : " << global_record_point.estimation << endl;
+		vector<var> add_vars, remove_vars;
+		for (auto v : add_remove_vars)
+			if (v.is_add)
+				add_vars.push_back(v);
+			else
+				remove_vars.push_back(v);
+		
+		cout << "add vars : " << endl;
+		for (auto v : add_vars)
+			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
+		cout << "remove vars : " << endl;
+		for (auto v : remove_vars)
+			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
+		
+		vector<var> reduced_remove_vars, reduced_add_vars;
+		// sort remove vars by estimation
+		sort(remove_vars.begin(), remove_vars.end(), compareByVarEstimation);
+		cout << "sorted remove vars : " << endl;
+		for (auto v : remove_vars)
+			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
+		cout << endl << "get first " << REPLACE_VARS << " of them" << endl;
+		reduced_remove_vars = remove_vars;
+		reduced_remove_vars.resize(REPLACE_VARS);
+		// sort add vars by estimation
+		sort(add_vars.begin(), add_vars.end(), compareByVarEstimation);
+		cout << "sorted add vars : " << endl;
+		for (auto v : add_vars)
+			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
+		cout << endl << "get first " << REPLACE_VARS << " of them" << endl;
+		reduced_add_vars = add_vars;
+		reduced_add_vars.resize(REPLACE_VARS);
+
+		neighbors_points.clear();
+		for (auto x : reduced_remove_vars) {
+			unsigned pos1 = getVarPos(x.value);
+			for (auto y : reduced_add_vars) {
+				unsigned pos2 = getVarPos(y.value);
+				point p = neigh_center;
+				p.value[pos1] = false;
+				p.value[pos2] = true;
+				neighbors_points.push_back(p);
+			}
+		}
+		cout << "first " << REPLACE_VARS + 1 << "neighbors : " << endl;
+		for (unsigned j = 0; j < REPLACE_VARS + 1; j++) {
+			vector<unsigned> uvec = uintVecFromPoint(neighbors_points[j]);
+			coutUintVec(uvec);
+		}
+		random_shuffle(neighbors_points.begin(), neighbors_points.end());
+		
+		is_local_record_updated = processNeghborhood(neighbors_points, neigh_center, is_break, add_remove_vars);
+		if (is_break)
+			break;
+		
+		if (!is_local_record_updated) {
+			cout << "*** interrupt the search: local minimum" << endl;
+			writeToGraphFile("--- interrupt: local minimum");
+			break; // local minimum
+		}
+	}
+}
+
 void igbfs::onePlusOneSimpleHillClimbing()
 {
 	onePlusOne(300, 3600); // max 300 function calculations or 3600 seconds without updates of global min
-	simpleHillClimbing(global_record_point, 1);
+	simpleHillClimbingAddRemovePartialRaplace(global_record_point);
 }
