@@ -154,7 +154,7 @@ void igbfs::iteratedHCVJ()
 	cout << "interrupted points : " << interrupted_points_count << endl;
 }
 
-void igbfs::updateLocalRecord(point cur_point)
+void igbfs::updateLocalRecord(point cur_point, int neighbor_index, int neighbor_size)
 {
 	local_record_point = cur_point;
 	
@@ -165,7 +165,7 @@ void igbfs::updateLocalRecord(point cur_point)
 		cout << "elapsed wall time : " << timeFromStart() << " sec | " << 
 			    "record backdoor with " << global_record_point.weight() << " vars | " <<
 			    " estimation " << global_record_point.estimation / cpu_cores << " sec on " << 
-			    cpu_cores << " CPU cores" << endl;
+			    cpu_cores << " CPU cores" << endl << flush;
 		if (verbosity > 0)
 			printGlobalRecordPoint();
 		if (is_jump_mode) {
@@ -208,6 +208,8 @@ void igbfs::updateLocalRecord(point cur_point)
 			total_func_calculations << " " << total_skipped_func_calculations;
 	}
 
+	if ((neighbor_index >= 0) && (neighbor_size > 0))
+	    sstream << " " << neighbor_index << "/" << neighbor_size;
 	writeToGraphFile(sstream.str());
 	
 	if ( (is_jump_mode) && (cur_point.weight() > MIN_VARS_JUMP_FROM) && (vars_decr_times >= 4) )
@@ -252,7 +254,7 @@ int igbfs::findBackdoor()
 	// if the decomposition set is unknown and it is required to find it
 	stringstream sstream;
 	cpu_cores = getCpuCores();
-	sstream << "vars est-1-core est-" << cpu_cores << "-cores elapsed-sec elapsed-fcalc skipped_fcalc";
+	sstream << "vars est-1-core est-" << cpu_cores << "-cores elapsed-sec elapsed-fcalc skipped_fcalc neigh_index/neigh_size";
 	writeToGraphFile(sstream.str());
 	sstream.str(""); sstream.clear();
 	switch (opt_alg) {
@@ -531,31 +533,33 @@ vector<point> igbfs::neighbors(point p, int neigh_type)
 	return neighbors;
 }
 
-bool igbfs::processNeghborhood(vector<point> neighbors_points, point &neigh_center, 
+bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_center, 
 	                           bool &is_break, vector<var> &add_remove_vars, bool is_add_remove_vars_req)
 {
 	bool is_local_record_updated = false;
 	is_break = false;
 	vector<unsigned> center_uint_vec = uintVecFromPoint(neigh_center);
+	int neighbor_index = -1;
 	for (auto neighbor : neighbors_points) {	
+		neighbor_index++;
 		calculateEstimation(neighbor);
 		if (neighbor.estimation <= 0)
 			continue;
 		if (is_add_remove_vars_req) {
 			// find diff var
 			vector<unsigned> diff;
-			vector<unsigned> neghbor_uint_vec = uintVecFromPoint(neighbor);
+			vector<unsigned> neighbor_uint_vec = uintVecFromPoint(neighbor);
 			var v;
 			v.value = 0; // var values start from 1, so 0 is an impossible value
 			set_difference(center_uint_vec.begin(), center_uint_vec.end(),
-				neghbor_uint_vec.begin(), neghbor_uint_vec.end(),
+				neighbor_uint_vec.begin(), neighbor_uint_vec.end(),
 				inserter(diff, diff.begin()));
 			if (diff.size() == 1) {
 				v.value = diff[0];
 				v.is_add = false;
 			}
 			else if (diff.size() == 0) {
-				set_difference(neghbor_uint_vec.begin(), neghbor_uint_vec.end(),
+				set_difference(neighbor_uint_vec.begin(), neighbor_uint_vec.end(),
 					center_uint_vec.begin(), center_uint_vec.end(),
 					inserter(diff, diff.begin()));
 				if (diff.size() == 1) {
@@ -569,7 +573,7 @@ bool igbfs::processNeghborhood(vector<point> neighbors_points, point &neigh_cent
 			}
 		}
 		if (neighbor.estimation < global_record_point.estimation) {
-			updateLocalRecord(neighbor);
+			updateLocalRecord(neighbor, neighbor_index, neighbors_points.size());
 			neigh_center = neighbor;
 			is_local_record_updated = true;
 			break;
@@ -831,7 +835,7 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		bool is_local_record_updated = false;
 		vector<point> neighbors_points = neighbors(neigh_center, 0); // add/remove first
 		vector<var> add_remove_vars;
-		is_local_record_updated = processNeghborhood(neighbors_points, neigh_center, is_break, add_remove_vars, true);
+		is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, is_break, add_remove_vars, true);
 		if (is_break)
 			break;
 		if (is_local_record_updated)
@@ -886,9 +890,10 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 			vector<unsigned> uvec = uintVecFromPoint(neighbors_points[j]);
 			coutUintVec(uvec);
 		}
-		random_shuffle(neighbors_points.begin(), neighbors_points.end());
+		// don't shuffle, check from the best ones
+		//random_shuffle(neighbors_points.begin(), neighbors_points.end());
 		
-		is_local_record_updated = processNeghborhood(neighbors_points, neigh_center, is_break, add_remove_vars);
+		is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, is_break, add_remove_vars);
 		if (is_break)
 			break;
 		

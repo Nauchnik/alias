@@ -19,10 +19,10 @@ public:
 	point permutateRecordPoint();
 	point randPermutateRecordPoint();
 	//void GBFS(const point start_point);
-	void updateLocalRecord(point cur_point);
+	void updateLocalRecord(point cur_point, int neighbor_index = -1, int neighbor_size = -1);
 	point jumpPoint(point cur_point);
 	vector<point> neighbors(point p, int neigh_type = 0);
-	bool processNeghborhood(vector<point> neighbors_points, point &neigh_center,
+	bool processNeighborhood(vector<point> neighbors_points, point &neigh_center,
 		bool &is_break, vector<var> &add_remove_vars, bool is_add_remove_vars_req = false);
 	void HCVJ(point start_point);
 	void randSearchWholeSpace();
