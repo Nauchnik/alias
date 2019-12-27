@@ -832,9 +832,9 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 	
 	bool is_break = false;
 	for (;;) {
-		bool is_local_record_updated = false;
 		vector<point> neighbors_points = neighbors(neigh_center, 0); // add/remove first
 		vector<var> add_remove_vars;
+		bool is_local_record_updated = false;
 		is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, is_break, add_remove_vars, true);
 		if (is_break)
 			break;
@@ -849,53 +849,71 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 			else
 				remove_vars.push_back(v);
 		
-		cout << "add vars : " << endl;
+		/*cout << "add vars : " << endl;
 		for (auto v : add_vars)
 			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
 		cout << "remove vars : " << endl;
 		for (auto v : remove_vars)
 			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
-		
-		vector<var> reduced_remove_vars, reduced_add_vars;
+		*/
+		// remove vars with interrupted objective function first
+		for (auto &var : remove_vars)
+			if (var.estimation >= MAX_OBJ_FUNC_VALUE)
+				var.estimation = -1;
 		// sort remove vars by estimation
 		sort(remove_vars.begin(), remove_vars.end(), compareByVarEstimation);
-		cout << "sorted remove vars : " << endl;
+		cout << endl << "sorted remove vars (interrupted first) : " << endl;
 		for (auto v : remove_vars)
 			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
 		cout << endl << "get first " << REPLACE_VARS << " of them" << endl;
-		reduced_remove_vars = remove_vars;
-		reduced_remove_vars.resize(REPLACE_VARS);
+		remove_vars.resize(REPLACE_VARS);
 		// sort add vars by estimation
 		sort(add_vars.begin(), add_vars.end(), compareByVarEstimation);
-		cout << "sorted add vars : " << endl;
+		cout << endl << "sorted add vars : " << endl;
 		for (auto v : add_vars)
 			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
 		cout << endl << "get first " << REPLACE_VARS << " of them" << endl;
-		reduced_add_vars = add_vars;
-		reduced_add_vars.resize(REPLACE_VARS);
+		add_vars.resize(REPLACE_VARS);
+		// remove vars with interrupted value of the objective function
+		for (vector<var>::iterator it = add_vars.begin();
+			it != add_vars.end();) 
+		{
+			if (it->estimation >= MAX_OBJ_FUNC_VALUE)
+				it = add_vars.erase(it);
+			else
+				++it;
+		}
+		cout << endl << "add vars after remove of interrupted : " << endl;
+		for (auto v : add_vars)
+			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
 
 		neighbors_points.clear();
-		for (auto x : reduced_remove_vars) {
-			unsigned pos1 = getVarPos(x.value);
-			for (auto y : reduced_add_vars) {
-				unsigned pos2 = getVarPos(y.value);
-				point p = neigh_center;
-				p.value[pos1] = false;
-				p.value[pos2] = true;
-				neighbors_points.push_back(p);
+		if (add_vars.size() > 0) {
+			for (auto x : remove_vars) {
+				unsigned pos1 = getVarPos(x.value);
+				for (auto y : add_vars) {
+					unsigned pos2 = getVarPos(y.value);
+					point p = neigh_center;
+					p.value[pos1] = false;
+					p.value[pos2] = true;
+					neighbors_points.push_back(p);
+				}
 			}
-		}
-		cout << "first " << REPLACE_VARS + 1 << "neighbors : " << endl;
-		for (unsigned j = 0; j < REPLACE_VARS + 1; j++) {
-			vector<unsigned> uvec = uintVecFromPoint(neighbors_points[j]);
-			coutUintVec(uvec);
+			cout << "first " << REPLACE_VARS + 1 << "neighbors : " << endl;
+			for (unsigned j = 0; j < REPLACE_VARS + 1; j++) {
+				vector<unsigned> uvec = uintVecFromPoint(neighbors_points[j]);
+				coutUintVec(uvec);
+			}
 		}
 		// don't shuffle, check from the best ones
 		//random_shuffle(neighbors_points.begin(), neighbors_points.end());
 		
-		is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, is_break, add_remove_vars);
-		if (is_break)
-			break;
+		is_local_record_updated = false;
+		if (neighbors_points.size() > 0) {
+			is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, is_break, add_remove_vars);
+			if (is_break)
+				break;
+		}
 		
 		if (!is_local_record_updated) {
 			cout << "*** interrupt the search: local minimum" << endl;
