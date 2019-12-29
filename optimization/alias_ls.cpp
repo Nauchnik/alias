@@ -39,6 +39,7 @@ void writeUsage()
 	cout << "	6: iterated hill climbing with variables-based jump" << endl;
 	cout << "	7: simple hill climbing (add/remove/partial-replace)" << endl;
 	cout << "	8: (1+1)-EA with simple hill climbing (add/remove/partial-replace)" << endl;
+	cout << "	9: simple hill climbing (add/remove/replace)" << endl;
 	cout << "-backdoor    = <string>                     [OPTIONAL]   Name of a file which contains a backdoor (numeration from 1) \n";
 	cout << "--solve                                     [OPTIONAL]   Enable solving of a given instance by a found (or a given) backdoor \n";
 	cout << "\n" << "MAIN OPTIONS: \n \n";

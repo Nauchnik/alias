@@ -265,7 +265,7 @@ int igbfs::findBackdoor()
 		randSearchReduceOneVar();
 		break;
 	case 2:
-		simpleHillClimbing();
+		simpleHillClimbing(); // neighborhood = add/remove
 		break;
 	case 3:
 		steepestAscentHillClimbing();
@@ -284,6 +284,9 @@ int igbfs::findBackdoor()
 		break;
 	case 8:
 		onePlusOneSimpleHillClimbing();
+		break;
+	case 9:
+		simpleHillClimbing(1); // neighborhood = add/remove/replace
 		break;
 	default:
 		cout << "Unknown opt_alg, 1+1 was chosen\n";
@@ -588,7 +591,7 @@ bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_cen
 	return is_local_record_updated;
 }
 
-void igbfs::simpleHillClimbing( point p, int neigh_type )
+void igbfs::simpleHillClimbing(int neigh_type, point p)
 {
 	cout << "simpleHillClimbing()\n";
 	is_jump_mode = false;
@@ -617,12 +620,14 @@ void igbfs::simpleHillClimbing( point p, int neigh_type )
 	for(;;) {
 		bool is_local_record_updated = false;
 		vector<point> neighbors_points = neighbors(neigh_center, neigh_type);
+		int neighbor_index = -1;
 		for (auto neighbor : neighbors_points) {
+			neighbor_index++;
 			calculateEstimation(neighbor);
 			if (neighbor.estimation <= 0)
 				continue;
 			if (neighbor.estimation < global_record_point.estimation) {
-				updateLocalRecord(neighbor);
+				updateLocalRecord(neighbor, neighbor_index, neighbors_points.size());
 				neigh_center = neighbor;
 				is_local_record_updated = true;
 				break;
@@ -843,19 +848,27 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		
 		cout << endl << "cur bkv : " << global_record_point.estimation << endl;
 		vector<var> add_vars, remove_vars;
+		bool is_remove_var_not_inter = false;
 		for (auto v : add_remove_vars)
 			if (v.is_add)
 				add_vars.push_back(v);
-			else
+			else {
 				remove_vars.push_back(v);
+				if (v.estimation < MAX_OBJ_FUNC_VALUE)
+					is_remove_var_not_inter = true;
+			}
+
+		if (!is_remove_var_not_inter) {
+			cout << "*** for all remove vars obj func was interrupted" << endl;
+			cout << "*** clear interrupted checked points" << endl;
+			cout << "*** increase time_limit_per_task from " << time_limit_per_task << " to " << time_limit_per_task * 2 << endl;
+			time_limit_per_task *= 2;
+			stringstream sstream;
+			sstream << time_limit_per_task;
+			writeToGraphFile("--- time_limit_per_task : " + sstream.str());
+			clearInterruptedChecked();
+		}
 		
-		/*cout << "add vars : " << endl;
-		for (auto v : add_vars)
-			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
-		cout << "remove vars : " << endl;
-		for (auto v : remove_vars)
-			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
-		*/
 		// remove vars with interrupted objective function first
 		for (auto &var : remove_vars)
 			if (var.estimation >= MAX_OBJ_FUNC_VALUE)

@@ -57,6 +57,7 @@ public:
 	void reportResult();
 	void calculateEstimation(point &cur_point);
 	bool isChecked(point p);
+	void clearInterruptedChecked();
 	string getScriptCommand(const int mode, const point cur_point);
 	bool isKnownBackdoor();
 	int getVarPos(const int val);
@@ -97,6 +98,7 @@ protected:
 	unsigned jump_lim;
 	unsigned jump_step;
 	bool is_jump_mode;
+	unsigned time_limit_per_task; // limit in seconds for ALIAS.py
 };
 
 inline int base_local_search::getVarPos(const int val)

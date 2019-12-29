@@ -27,7 +27,7 @@ public:
 	void HCVJ(point start_point);
 	void randSearchWholeSpace();
 	void randSearchReduceOneVar();
-	void simpleHillClimbing(point p = point(), int neigh_type = 0);
+	void simpleHillClimbing(int neigh_type = 0, point p = point());
 	void simpleHillClimbingAddRemovePartialRaplace(point p = point());
 	void steepestAscentHillClimbing();
 	void tabuSearch();

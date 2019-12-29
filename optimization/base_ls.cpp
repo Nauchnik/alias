@@ -22,7 +22,8 @@ base_local_search::base_local_search() :
 	opt_alg(5), // 1+1
 	total_func_calculations(0),
 	total_skipped_func_calculations(0),
-	verbosity(0)
+	verbosity(0),
+	time_limit_per_task(10)
 {
 	start_t = chrono::high_resolution_clock::now();
 	known_backdoor.value.resize(0);
@@ -365,6 +366,18 @@ void base_local_search::init()
 	cpu_cores = getCpuCores();
 }
 
+void base_local_search::clearInterruptedChecked()
+{
+	for (unordered_map<string, double>::iterator it = checked_points.begin();
+		it != checked_points.end();)
+	{
+		if (it->second >= MAX_OBJ_FUNC_VALUE)
+			it = checked_points.erase(it);
+		else
+			++it;
+	}
+}
+
 void base_local_search::calculateEstimation(point &cur_point)
 {
 	string str = "";
@@ -459,9 +472,15 @@ string base_local_search::getScriptCommand(const int mode, const point cur_point
 		command_str += " -s -wtlimitsolve " + sstream.str();
 		sstream.str(""); sstream.clear();
 	}
-	else
+	else {
 		command_str += " -e";
-
+		if (time_limit_per_task > 0) {
+			sstream << time_limit_per_task;
+			command_str += " -maxtlpertask " + sstream.str();
+			sstream.str(""); sstream.clear();
+		}
+	}
+	
 	sstream << cpu_cores;
 	command_str += " -number_of_processes " + sstream.str();
 	sstream.str(""); sstream.clear();
