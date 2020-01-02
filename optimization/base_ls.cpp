@@ -368,6 +368,8 @@ void base_local_search::init()
 
 void base_local_search::clearInterruptedChecked()
 {
+	cout << "clearing interrupted points \n";
+	cout << checked_points.size() << " points before\n";
 	for (unordered_map<string, double>::iterator it = checked_points.begin();
 		it != checked_points.end();)
 	{
@@ -376,6 +378,7 @@ void base_local_search::clearInterruptedChecked()
 		else
 			++it;
 	}
+	cout << checked_points.size() << " points after\n";
 }
 
 void base_local_search::calculateEstimation(point &cur_point)

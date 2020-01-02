@@ -848,18 +848,25 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		
 		cout << endl << "cur bkv : " << global_record_point.estimation << endl;
 		vector<var> add_vars, remove_vars;
-		bool is_remove_var_not_inter = false;
+		bool is_add_var_inter = false;
+		int inter_remove_var = 0;
 		for (auto v : add_remove_vars)
-			if (v.is_add)
+			if (v.is_add) {
 				add_vars.push_back(v);
+				if (v.estimation >= MAX_OBJ_FUNC_VALUE)
+					is_add_var_inter = true;
+			}
 			else {
 				remove_vars.push_back(v);
-				if (v.estimation < MAX_OBJ_FUNC_VALUE)
-					is_remove_var_not_inter = true;
+				if (v.estimation >= MAX_OBJ_FUNC_VALUE)
+					inter_remove_var++;
 			}
-
-		if (!is_remove_var_not_inter) {
-			cout << "*** for all remove vars obj func was interrupted" << endl;
+		
+		if ((is_add_var_inter) || (inter_remove_var == remove_vars.size())) {
+			cout << "*** for all remove vars (or for at least one add var) the obj func was interrupted" << endl;
+			cout << "is_add_var_inter : " << is_add_var_inter << endl;
+			cout << "inter_remove_var : " << inter_remove_var << endl;
+			cout << "remove_vars.size() : " << remove_vars.size() << endl;
 			cout << "*** clear interrupted checked points" << endl;
 			cout << "*** increase time_limit_per_task from " << time_limit_per_task << " to " << time_limit_per_task * 2 << endl;
 			time_limit_per_task *= 2;
