@@ -21,9 +21,14 @@ bool compareByVarValue(const var &a, const var &b)
 	return a.value < b.value;
 }
 
-bool compareByVarEstimation(const var &a, const var &b)
+bool compareByVarRemObjVal(const var &a, const var &b)
 {
-	return a.estimation < b.estimation;
+	return a.obj_val_remove < b.obj_val_remove;
+}
+
+bool compareByVarAddObjVal(const var &a, const var &b)
+{
+	return a.obj_val_add < b.obj_val_add;
 }
 
 void igbfs::backJump() {
@@ -466,34 +471,67 @@ void igbfs::HCVJ(point start_point)
     cout << "HCVJ() end" << endl << endl;
 }
 
-vector<point> igbfs::neighbors(point p, int neigh_type)
+vector<point> igbfs::neighbors(point neigh_center, vector<bool> &is_add_vars, int neigh_type)
 {
-	vector<point> neighbors, remove_neighbors, add_neighbors, replace_neighbors;
-	// add 'add/remove' points
-	for (unsigned i = 0; i < p.value.size(); i++) {
-		point new_p = p;
-		//new_p.value[i] = p.value[i] == true ? false : true;
-		if (p.value[i] == true) {
-		    new_p.value[i] = false;
-		    remove_neighbors.push_back(new_p);
+	vector<point> neighbors_points;
+	// determine which variables can be added/removed from the given point
+	is_add_vars.resize(vars.size());
+	for (unsigned i = 0; i < neigh_center.value.size(); i++)
+		is_add_vars[i] = !(neigh_center.value[i]);
+	
+	if (neigh_type == 0) {
+		vector<point> remove_neighbors, add_neighbors;
+		// add 'add/remove' points and shuffle them
+		for (unsigned i = 0; i < neigh_center.value.size(); i++) {
+			point new_p = neigh_center;
+			if (neigh_center.value[i] == true) {
+				new_p.value[i] = false;
+				remove_neighbors.push_back(new_p);
+			}
+			else if (neigh_center.value[i] == false) {
+				new_p.value[i] = true;
+				add_neighbors.push_back(new_p);
+			}
 		}
-		else if (p.value[i] == false) {
-		    new_p.value[i] = true;
-		    add_neighbors.push_back(new_p);
+		random_shuffle(remove_neighbors.begin(), remove_neighbors.end());
+		random_shuffle(add_neighbors.begin(), add_neighbors.end());
+		neighbors_points = remove_neighbors;
+		for (auto x : add_neighbors)
+			neighbors_points.push_back(x);
+	}
+	else if (neigh_type == 3) {
+		vector<var> add_vars, remove_vars;
+		for (unsigned i = 0; i < is_add_vars.size(); i++)
+			if (is_add_vars[i])
+				add_vars.push_back(vars[i]);
+			else
+				remove_vars.push_back(vars[i]);
+		sort(remove_vars.begin(), remove_vars.end(), compareByVarRemObjVal);
+		sort(add_vars.begin(), add_vars.end(), compareByVarAddObjVal);
+		neighbors_points.clear();
+		for (auto x : remove_vars) {
+			unsigned pos1 = getVarPos(x.value);
+			point p = neigh_center;
+			p.value[pos1] = false;
+			neighbors_points.push_back(p);
+		}
+		for (auto y : add_vars) {
+			unsigned pos2 = getVarPos(y.value);
+			point p = neigh_center;
+			p.value[pos2] = true;
+			neighbors_points.push_back(p);
 		}
 	}
-	for (auto x : remove_neighbors)
-	    neighbors.push_back(x);
-	for (auto x : add_neighbors)
-	    neighbors.push_back(x);
+
 	if (neigh_type == 1) { // add 'replace' points
+		vector<point> replace_neighbors;
 		cout << "cur center point : " << endl;
-		for (unsigned j = 0; j < p.value.size(); j++)
-			cout << (int)p.value[j];
+		for (unsigned j = 0; j < neigh_center.value.size(); j++)
+			cout << (int)neigh_center.value[j];
 		cout << endl;
 		vector<int> p_var_indecies, notp_var_indecies;
-		for (unsigned i = 0; i < p.value.size(); i++)
-			if (p.value[i])
+		for (unsigned i = 0; i < neigh_center.value.size(); i++)
+			if (neigh_center.value[i])
 				p_var_indecies.push_back(i);
 			else
 				notp_var_indecies.push_back(i);
@@ -511,7 +549,7 @@ vector<point> igbfs::neighbors(point p, int neigh_type)
 		cout << "first 10 replace points : " << endl;
 		for (auto x : p_var_indecies) {
 			for (auto y : notp_var_indecies) {
-				point new_p = p;
+				point new_p = neigh_center;
 				new_p.value[x] = false;
 				new_p.value[y] = true;
 				replace_neighbors.push_back(new_p);
@@ -523,21 +561,17 @@ vector<point> igbfs::neighbors(point p, int neigh_type)
 				}
 			}
 		}
-		cout << "neighbors size " << neighbors.size() << endl;
+		cout << "neighbors size " << neighbors_points.size() << endl;
+		random_shuffle(replace_neighbors.begin(), replace_neighbors.end());
+		for (auto x : replace_neighbors)
+			neighbors_points.push_back(x);
 	}
-	random_shuffle(remove_neighbors.begin(), remove_neighbors.end());
-	random_shuffle(add_neighbors.begin(), add_neighbors.end());
-	random_shuffle(replace_neighbors.begin(), replace_neighbors.end());
-	neighbors = remove_neighbors;
-	for (auto x : add_neighbors)
-		neighbors.push_back(x);
-	for (auto x : replace_neighbors)
-		neighbors.push_back(x);
-	return neighbors;
+
+	return neighbors_points;
 }
 
 bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_center, 
-	                           bool &is_break, vector<var> &add_remove_vars, bool is_add_remove_vars_req)
+								vector<bool> is_add_vars, bool &is_break, bool is_add_remove_vars_req)
 {
 	bool is_local_record_updated = false;
 	is_break = false;
@@ -549,31 +583,11 @@ bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_cen
 		if (neighbor.estimation <= 0)
 			continue;
 		if (is_add_remove_vars_req) {
-			// find diff var
-			vector<unsigned> diff;
-			vector<unsigned> neighbor_uint_vec = uintVecFromPoint(neighbor);
-			var v;
-			v.value = 0; // var values start from 1, so 0 is an impossible value
-			set_difference(center_uint_vec.begin(), center_uint_vec.end(),
-				neighbor_uint_vec.begin(), neighbor_uint_vec.end(),
-				inserter(diff, diff.begin()));
-			if (diff.size() == 1) {
-				v.value = diff[0];
-				v.is_add = false;
-			}
-			else if (diff.size() == 0) {
-				set_difference(neighbor_uint_vec.begin(), neighbor_uint_vec.end(),
-					center_uint_vec.begin(), center_uint_vec.end(),
-					inserter(diff, diff.begin()));
-				if (diff.size() == 1) {
-					v.value = diff[0];
-					v.is_add = true;
-				}
-			}
-			if (v.value > 0) {
-				v.estimation = neighbor.estimation;
-				add_remove_vars.push_back(v);
-			}
+			int pos = getVarPos(neighbor_index);
+			if (is_add_vars[pos])
+				vars[pos].obj_val_add = neighbor.estimation / global_record_point.estimation;
+			else
+				vars[pos].obj_val_remove = neighbor.estimation / global_record_point.estimation;
 		}
 		if (neighbor.estimation < global_record_point.estimation) {
 			updateLocalRecord(neighbor, neighbor_index, neighbors_points.size());
@@ -619,7 +633,8 @@ void igbfs::simpleHillClimbing(int neigh_type, point p)
 	bool is_break = false;
 	for(;;) {
 		bool is_local_record_updated = false;
-		vector<point> neighbors_points = neighbors(neigh_center, neigh_type);
+		vector<bool> is_add_vars;
+		vector<point> neighbors_points = neighbors(neigh_center, is_add_vars, neigh_type);
 		int neighbor_index = -1;
 		for (auto neighbor : neighbors_points) {
 			neighbor_index++;
@@ -667,7 +682,8 @@ void igbfs::steepestAscentHillClimbing()
 	bool is_break = false;
 	for (;;) {
 		bool is_local_record_updated = false;
-		vector<point> neighbors_points = neighbors(neigh_center);
+		vector<bool> is_add_vars;
+		vector<point> neighbors_points = neighbors(neigh_center, is_add_vars);
 		for (auto neighbor : neighbors_points) {
 			calculateEstimation(neighbor);
 			if (neighbor.estimation <= 0)
@@ -714,8 +730,9 @@ void igbfs::tabuSearch()
 	vector<point> tabu_list;
 	point best_point_in_neigh;
 	bool is_break = false;
+	vector<bool> is_add_vars;
 	for (;;) {
-		vector<point> neighbors_points = neighbors(neigh_center);
+		vector<point> neighbors_points = neighbors(neigh_center, is_add_vars);
 		best_point_in_neigh.estimation = HUGE_VALF;
 		for (auto neighbor : neighbors_points) {
 			if (find(tabu_list.begin(), tabu_list.end(), neighbor) != tabu_list.end())
@@ -837,10 +854,11 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 	
 	bool is_break = false;
 	for (;;) {
-		vector<point> neighbors_points = neighbors(neigh_center, 0); // add/remove first
-		vector<var> add_remove_vars;
+		vector<bool> is_add_vars;
+		vector<point> neighbors_points = neighbors(neigh_center, is_add_vars, 3); // add/remove first
 		bool is_local_record_updated = false;
-		is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, is_break, add_remove_vars, true);
+		is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, 
+													  is_add_vars, is_break, true);
 		if (is_break)
 			break;
 		if (is_local_record_updated)
@@ -850,15 +868,15 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		vector<var> add_vars, remove_vars;
 		bool is_add_var_inter = false;
 		int inter_remove_var = 0;
-		for (auto v : add_remove_vars)
-			if (v.is_add) {
-				add_vars.push_back(v);
-				if (v.estimation >= MAX_OBJ_FUNC_VALUE)
+		for (unsigned i=0; i<is_add_vars.size(); i++)
+			if (is_add_vars[i]) {
+				add_vars.push_back(vars[i]);
+				if (vars[i].obj_val_add >= MAX_OBJ_FUNC_VALUE)
 					is_add_var_inter = true;
 			}
 			else {
-				remove_vars.push_back(v);
-				if (v.estimation >= MAX_OBJ_FUNC_VALUE)
+				remove_vars.push_back(vars[i]);
+				if (vars[i].obj_val_remove >= MAX_OBJ_FUNC_VALUE)
 					inter_remove_var++;
 			}
 		
@@ -878,34 +896,34 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		
 		// remove vars with interrupted objective function first
 		for (auto &var : remove_vars)
-			if (var.estimation >= MAX_OBJ_FUNC_VALUE)
-				var.estimation = -1;
+			if (var.obj_val_remove >= MAX_OBJ_FUNC_VALUE)
+				var.obj_val_remove = -1;
 		// sort remove vars by estimation
-		sort(remove_vars.begin(), remove_vars.end(), compareByVarEstimation);
+		sort(remove_vars.begin(), remove_vars.end(), compareByVarRemObjVal);
 		cout << endl << "sorted remove vars (interrupted first) : " << endl;
 		for (auto v : remove_vars)
-			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
+			cout << v.value << " " << " " << v.obj_val_remove << endl;
 		cout << endl << "get first " << REPLACE_VARS << " of them" << endl;
 		remove_vars.resize(REPLACE_VARS);
 		// sort add vars by estimation
-		sort(add_vars.begin(), add_vars.end(), compareByVarEstimation);
+		sort(add_vars.begin(), add_vars.end(), compareByVarAddObjVal);
 		cout << endl << "sorted add vars : " << endl;
 		for (auto v : add_vars)
-			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
+			cout << v.value << " " << " " << v.obj_val_add << endl;
 		cout << endl << "get first " << REPLACE_VARS << " of them" << endl;
 		add_vars.resize(REPLACE_VARS);
 		// remove vars with interrupted value of the objective function
 		for (vector<var>::iterator it = add_vars.begin();
 			it != add_vars.end();) 
 		{
-			if (it->estimation >= MAX_OBJ_FUNC_VALUE)
+			if (it->obj_val_add >= MAX_OBJ_FUNC_VALUE)
 				it = add_vars.erase(it);
 			else
 				++it;
 		}
 		cout << endl << "add vars after remove of interrupted : " << endl;
 		for (auto v : add_vars)
-			cout << v.value << " " << v.is_add << " " << v.estimation << endl;
+			cout << v.value << " " << " " << v.obj_val_add << endl;
 
 		neighbors_points.clear();
 		if (add_vars.size() > 0) {
@@ -925,12 +943,11 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 				coutUintVec(uvec);
 			}
 		}
-		// don't shuffle, check from the best ones
-		//random_shuffle(neighbors_points.begin(), neighbors_points.end());
 		
+		// process reduced replace neighborhood
 		is_local_record_updated = false;
 		if (neighbors_points.size() > 0) {
-			is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, is_break, add_remove_vars);
+			is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, is_add_vars, is_break);
 			if (is_break)
 				break;
 		}

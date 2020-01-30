@@ -22,7 +22,7 @@ const double DEFAULT_TIME_LIMIT = 3600;
 const unsigned MAX_SOLVING_VARS = 35;
 const unsigned DEFAULT_JUMP_LIM = 3;
 const unsigned MIN_VARS_JUMP = 100;
-const double MAX_OBJ_FUNC_VALUE = 1e100;
+const double MAX_OBJ_FUNC_VALUE = HUGE_VAL;
 
 #define SOLVE 1
 #define ESTIMATE 2
@@ -69,6 +69,7 @@ public:
 
 protected:
 	vector<var> vars;
+	bool are_vars_in_row;
 	unordered_map<string, double> checked_points;
 	unsigned skipped_points_count;
 	unsigned interrupted_points_count;
@@ -104,11 +105,16 @@ protected:
 inline int base_local_search::getVarPos(const int val)
 {
 	int pos = -1;
-	for (int i = 0; i < vars.size(); i++)
-		if (vars[i].value == val) {
-			pos = i;
-			break;
-		}
+	if (are_vars_in_row) { // don't find a position, variables are in a row
+		pos = val-1;
+	}
+	else { // find a position
+		for (int i = 0; i < vars.size(); i++)
+			if (vars[i].value == val) {
+				pos = i;
+				break;
+			}
+	}
 	if (pos == -1) {
 		cerr << "pos == -1" << endl;
 		exit(-1);

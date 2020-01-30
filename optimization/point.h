@@ -14,8 +14,8 @@ struct var
 	unsigned value;
 	unsigned global_records;
 	unsigned calculations;
-	double estimation; // value of the objective function if this var is added/removed
-	bool is_add; // is added var (for partial replace neighborhoods)
+	double obj_val_remove;
+	double obj_val_add;
 	
 	bool operator==(const var a)
 	{

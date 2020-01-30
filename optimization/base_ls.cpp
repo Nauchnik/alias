@@ -23,7 +23,8 @@ base_local_search::base_local_search() :
 	total_func_calculations(0),
 	total_skipped_func_calculations(0),
 	verbosity(0),
-	time_limit_per_task(10)
+	time_limit_per_task(10),
+	are_vars_in_row(false)
 {
 	start_t = chrono::high_resolution_clock::now();
 	known_backdoor.value.resize(0);
@@ -49,6 +50,15 @@ void base_local_search::loadVars()
 		exit(-1);
 	}
 	
+	are_vars_in_row = true;
+	for (unsigned i = 0; i < vars.size(); i++) {
+		if (vars[i].value != i+1) {
+			are_vars_in_row = false;
+			break;
+		}
+	}
+	
+	cout << "are_vars_in_row " << are_vars_in_row << endl;
 	cout << "search space variables number " << vars.size() << endl;
 }
 
@@ -143,6 +153,8 @@ vector<var> base_local_search::getAllCnfVars(const string filename)
 		tmp_var.value = i + 1;
 		tmp_var.calculations = 0;
 		tmp_var.global_records = 0;
+		tmp_var.obj_val_remove = MAX_OBJ_FUNC_VALUE;
+		tmp_var.obj_val_add = MAX_OBJ_FUNC_VALUE;
 		vars_vec.push_back(tmp_var);
 	}
 
@@ -179,9 +191,11 @@ vector<var> base_local_search::readVarsFromPcs(string pcs_name)
 		sstream >> tmp_var.value;
 		tmp_var.calculations = 0;
 		tmp_var.global_records = 0;
+		tmp_var.obj_val_remove = MAX_OBJ_FUNC_VALUE;
+		tmp_var.obj_val_add = MAX_OBJ_FUNC_VALUE;
 		vars_vec.push_back(tmp_var);
 	}
-
+	
 	pcs_file.close();
 
 	return vars_vec;
