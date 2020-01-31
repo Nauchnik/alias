@@ -36,6 +36,8 @@ public:
 	void onePlusOneSimpleHillClimbing();
 	int findBackdoor();
 	point generateRandPoint(const unsigned point_var_count);
+protected:
+	unsigned get_diff_var(point p1, point p2);
 };
 
 #endif

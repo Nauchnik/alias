@@ -22,7 +22,7 @@ const double DEFAULT_TIME_LIMIT = 3600;
 const unsigned MAX_SOLVING_VARS = 35;
 const unsigned DEFAULT_JUMP_LIM = 3;
 const unsigned MIN_VARS_JUMP = 100;
-const double MAX_OBJ_FUNC_VALUE = HUGE_VAL;
+const double MAX_OBJ_FUNC_VALUE = 1e+308;
 
 #define SOLVE 1
 #define ESTIMATE 2
@@ -48,6 +48,7 @@ public:
 	point pointFromUintVec(vector<unsigned> var_vec);
 	vector<unsigned> uintVecFromPoint(point p);
 	void coutUintVec(vector<unsigned> vec);
+	void coutBoolVec(vector<bool> vec);
 	vector<var> getAllCnfVars(const string filename);
 	vector<var> readVarsFromPcs(string pcs_name);
 	bool isEstTooLong();
@@ -60,7 +61,7 @@ public:
 	void clearInterruptedChecked();
 	string getScriptCommand(const int mode, const point cur_point);
 	bool isKnownBackdoor();
-	int getVarPos(const int val);
+	int getVarPos(const unsigned val);
 	void printGlobalRecordPoint();
 	string printUintVector(vector<unsigned>);
 	
@@ -101,26 +102,6 @@ protected:
 	bool is_jump_mode;
 	unsigned time_limit_per_task; // limit in seconds for ALIAS.py
 };
-
-inline int base_local_search::getVarPos(const int val)
-{
-	int pos = -1;
-	if (are_vars_in_row) { // don't find a position, variables are in a row
-		pos = val-1;
-	}
-	else { // find a position
-		for (int i = 0; i < vars.size(); i++)
-			if (vars[i].value == val) {
-				pos = i;
-				break;
-			}
-	}
-	if (pos == -1) {
-		cerr << "pos == -1" << endl;
-		exit(-1);
-	}
-	return pos;
-}
 
 #endif
 

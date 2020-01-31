@@ -473,13 +473,23 @@ void igbfs::HCVJ(point start_point)
 
 vector<point> igbfs::neighbors(point neigh_center, vector<bool> &is_add_vars, int neigh_type)
 {
+	if (verbosity > 0) {
+		cout << "start of neighbors()" << endl;
+		cout << "neigh_center size : " << neigh_center.value.size() << endl;
+	}
+
 	vector<point> neighbors_points;
 	// determine which variables can be added/removed from the given point
 	is_add_vars.resize(vars.size());
 	for (unsigned i = 0; i < neigh_center.value.size(); i++)
 		is_add_vars[i] = !(neigh_center.value[i]);
+
+	if (verbosity > 0) {
+		cout << "is_add_vars size" << is_add_vars.size() << endl;
+		coutBoolVec(is_add_vars);
+	}
 	
-	if (neigh_type == 0) {
+	if (neigh_type <= 1) { // add add/remove points
 		vector<point> remove_neighbors, add_neighbors;
 		// add 'add/remove' points and shuffle them
 		for (unsigned i = 0; i < neigh_center.value.size(); i++) {
@@ -499,65 +509,86 @@ vector<point> igbfs::neighbors(point neigh_center, vector<bool> &is_add_vars, in
 		for (auto x : add_neighbors)
 			neighbors_points.push_back(x);
 	}
-	else if (neigh_type == 3) {
+	else if (neigh_type == 2) {
 		vector<var> add_vars, remove_vars;
 		for (unsigned i = 0; i < is_add_vars.size(); i++)
 			if (is_add_vars[i])
 				add_vars.push_back(vars[i]);
 			else
 				remove_vars.push_back(vars[i]);
+		random_shuffle(remove_vars.begin(), remove_vars.end());
+		random_shuffle(add_vars.begin(), add_vars.end());
 		sort(remove_vars.begin(), remove_vars.end(), compareByVarRemObjVal);
-		sort(add_vars.begin(), add_vars.end(), compareByVarAddObjVal);
-		neighbors_points.clear();
+		if (add_vars.size() > 0)
+			sort(add_vars.begin(), add_vars.end(), compareByVarAddObjVal);
+		if (verbosity > 0) {
+			cout << "remove_vars size " << remove_vars.size() << endl;
+			cout << "remove_vars : " << endl;
+			for (auto v : remove_vars)
+				cout << v.value << " : " << v.obj_val_remove << endl;
+			cout << "add_vars size " << add_vars.size() << endl;
+			cout << "add_vars : " << endl;
+			for (auto v : add_vars)
+				cout << v.value << " : " << v.obj_val_add << endl;
+		}
 		for (auto x : remove_vars) {
-			unsigned pos1 = getVarPos(x.value);
+			int pos = getVarPos(x.value);
 			point p = neigh_center;
-			p.value[pos1] = false;
+			p.value[pos] = false;
 			neighbors_points.push_back(p);
 		}
-		for (auto y : add_vars) {
-			unsigned pos2 = getVarPos(y.value);
-			point p = neigh_center;
-			p.value[pos2] = true;
-			neighbors_points.push_back(p);
+		if (add_vars.size() > 0) {
+			for (auto y : add_vars) {
+				int pos = getVarPos(y.value);
+				point p = neigh_center;
+				p.value[pos] = true;
+				neighbors_points.push_back(p);
+			}
 		}
 	}
 
 	if (neigh_type == 1) { // add 'replace' points
 		vector<point> replace_neighbors;
-		cout << "cur center point : " << endl;
-		for (unsigned j = 0; j < neigh_center.value.size(); j++)
-			cout << (int)neigh_center.value[j];
-		cout << endl;
+		if (verbosity > 0) {
+			cout << "cur center point : " << endl;
+			for (unsigned j = 0; j < neigh_center.value.size(); j++)
+				cout << (int)neigh_center.value[j];
+			cout << endl;
+		}
 		vector<int> p_var_indecies, notp_var_indecies;
 		for (unsigned i = 0; i < neigh_center.value.size(); i++)
 			if (neigh_center.value[i])
 				p_var_indecies.push_back(i);
 			else
 				notp_var_indecies.push_back(i);
-		cout << "p_var_indecies size " << p_var_indecies.size() << endl;
-		cout << "notp_var_indecies size " << notp_var_indecies.size() << endl;
-		cout << "p_var_indecies : " << endl;
-		for (auto x : p_var_indecies)
-			cout << int(x);
-		cout << endl;
-		cout << "notp_var_indecies : " << endl;
-		for (auto x : notp_var_indecies)
-			cout << int(x);
-		cout << endl;
+		if (verbosity > 0) {
+			cout << "p_var_indecies size " << p_var_indecies.size() << endl;
+			cout << "notp_var_indecies size " << notp_var_indecies.size() << endl;
+			cout << "p_var_indecies : " << endl;
+			for (auto x : p_var_indecies)
+				cout << int(x) << " ";
+			cout << endl;
+			cout << "notp_var_indecies : " << endl;
+			for (auto x : notp_var_indecies)
+				cout << int(x) << " ";
+			cout << endl;
+		}
 		int k = 0;
-		cout << "first 10 replace points : " << endl;
+		if (verbosity > 0)
+			cout << "first 10 replace points : " << endl;
 		for (auto x : p_var_indecies) {
 			for (auto y : notp_var_indecies) {
 				point new_p = neigh_center;
 				new_p.value[x] = false;
 				new_p.value[y] = true;
 				replace_neighbors.push_back(new_p);
-				if (k < 10) {
-					for (unsigned j = 0; j < new_p.value.size(); j++)
-						cout << (int)new_p.value[j];
-					cout << endl;
-					k++;
+				if (verbosity > 0) {
+					if (k < 10) {
+						for (unsigned j = 0; j < new_p.value.size(); j++)
+							cout << (int)new_p.value[j];
+						cout << endl;
+						k++;
+					}
 				}
 			}
 		}
@@ -566,13 +597,37 @@ vector<point> igbfs::neighbors(point neigh_center, vector<bool> &is_add_vars, in
 		for (auto x : replace_neighbors)
 			neighbors_points.push_back(x);
 	}
-
+	
 	return neighbors_points;
+}
+
+unsigned igbfs::get_diff_var(point p1, point p2)
+{
+	vector<unsigned> vec1 = uintVecFromPoint(p1);
+	vector<unsigned> vec2 = uintVecFromPoint(p2);
+	vector<unsigned> diff_vec;
+	if (vec1.size() > vec2.size()) {
+		set_difference(vec1.begin(), vec1.end(),
+			vec2.begin(), vec2.end(),
+			inserter(diff_vec, diff_vec.begin()));
+	}
+	else {
+		set_difference(vec2.begin(), vec2.end(),
+			vec1.begin(), vec1.end(),
+			inserter(diff_vec, diff_vec.begin()));
+	}
+	if (diff_vec.size() != 1) {
+		cerr << "diff_vec size : " << diff_vec.size() << endl;
+		exit(-1);
+	}
+	return diff_vec[0];
 }
 
 bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_center, 
 								vector<bool> is_add_vars, bool &is_break, bool is_add_remove_vars_req)
 {
+	if (verbosity > 0)
+		cout << "Start of processNeighborhood()" << endl;
 	bool is_local_record_updated = false;
 	is_break = false;
 	vector<unsigned> center_uint_vec = uintVecFromPoint(neigh_center);
@@ -583,11 +638,13 @@ bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_cen
 		if (neighbor.estimation <= 0)
 			continue;
 		if (is_add_remove_vars_req) {
-			int pos = getVarPos(neighbor_index);
+			unsigned var_val = get_diff_var(neighbor, neigh_center);
+			int pos = getVarPos(var_val);
+			double dval = neighbor.estimation / global_record_point.estimation;
 			if (is_add_vars[pos])
-				vars[pos].obj_val_add = neighbor.estimation / global_record_point.estimation;
+				vars[pos].obj_val_add = dval;
 			else
-				vars[pos].obj_val_remove = neighbor.estimation / global_record_point.estimation;
+				vars[pos].obj_val_remove = dval;
 		}
 		if (neighbor.estimation < global_record_point.estimation) {
 			updateLocalRecord(neighbor, neighbor_index, neighbors_points.size());
@@ -855,7 +912,17 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 	bool is_break = false;
 	for (;;) {
 		vector<bool> is_add_vars;
-		vector<point> neighbors_points = neighbors(neigh_center, is_add_vars, 3); // add/remove first
+		vector<point> neighbors_points = neighbors(neigh_center, is_add_vars, 2); // add/remove first
+		if (is_add_vars.size() != vars.size()) {
+			cerr << "is_add_vars.size() != vars.size()" << endl;
+			exit(-1);
+		}
+		if (verbosity > 0) {
+			cout << "neighbors_points size : " << neighbors_points.size() << endl;
+			cout << "is_add_vars : " << endl;
+			coutBoolVec(is_add_vars);
+		}
+		
 		bool is_local_record_updated = false;
 		is_local_record_updated = processNeighborhood(neighbors_points, neigh_center, 
 													  is_add_vars, is_break, true);
@@ -928,9 +995,9 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		neighbors_points.clear();
 		if (add_vars.size() > 0) {
 			for (auto x : remove_vars) {
-				unsigned pos1 = getVarPos(x.value);
+				int pos1 = getVarPos(x.value);
 				for (auto y : add_vars) {
-					unsigned pos2 = getVarPos(y.value);
+					int pos2 = getVarPos(y.value);
 					point p = neigh_center;
 					p.value[pos1] = false;
 					p.value[pos2] = true;

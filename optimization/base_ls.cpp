@@ -49,6 +49,11 @@ void base_local_search::loadVars()
 		cerr << "*** search space is empty" << endl;
 		exit(-1);
 	}
+
+	cout << "vars.size : " << vars.size() << endl;
+	for (auto v : vars)
+		cout << v.value << " ";
+	cout << endl;
 	
 	are_vars_in_row = true;
 	for (unsigned i = 0; i < vars.size(); i++) {
@@ -60,6 +65,27 @@ void base_local_search::loadVars()
 	
 	cout << "are_vars_in_row " << are_vars_in_row << endl;
 	cout << "search space variables number " << vars.size() << endl;
+}
+
+int base_local_search::getVarPos(const unsigned val)
+{
+	int pos = -1;
+	if (are_vars_in_row) { // don't find a position, variables are in a row
+		pos = val - 1;
+	}
+	else { // find a position
+		for (int i = 0; i < vars.size(); i++)
+			if (vars[i].value == val) {
+				pos = i;
+				break;
+			}
+	}
+	if (pos == -1) {
+		cerr << "pos == -1" << endl;
+		cerr << "val : " << val << endl;
+		exit(-1);
+	}
+	return pos;
 }
 
 point base_local_search::pointFromUintVec(vector<unsigned> var_vec)
@@ -85,6 +111,13 @@ vector<unsigned> base_local_search::uintVecFromPoint(point p)
 }
 
 void base_local_search::coutUintVec(vector<unsigned> vec)
+{
+	for (auto x : vec)
+		cout << x << " ";
+	cout << endl;
+}
+
+void base_local_search::coutBoolVec(vector<bool> vec)
 {
 	for (auto x : vec)
 		cout << x << " ";
