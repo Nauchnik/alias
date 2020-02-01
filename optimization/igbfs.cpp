@@ -485,7 +485,7 @@ vector<point> igbfs::neighbors(point neigh_center, vector<bool> &is_add_vars, in
 		is_add_vars[i] = !(neigh_center.value[i]);
 
 	if (verbosity > 0) {
-		cout << "is_add_vars size" << is_add_vars.size() << endl;
+		cout << "is_add_vars size : " << is_add_vars.size() << endl;
 		coutBoolVec(is_add_vars);
 	}
 	
@@ -509,18 +509,27 @@ vector<point> igbfs::neighbors(point neigh_center, vector<bool> &is_add_vars, in
 		for (auto x : add_neighbors)
 			neighbors_points.push_back(x);
 	}
-	else if (neigh_type == 2) {
-		vector<var> add_vars, remove_vars;
-		for (unsigned i = 0; i < is_add_vars.size(); i++)
-			if (is_add_vars[i])
-				add_vars.push_back(vars[i]);
-			else
-				remove_vars.push_back(vars[i]);
+	else if (neigh_type == 2) { // add/remove vars sorted by obj function's values
+		vector<var> remove_vars, add_vars;
+		for (unsigned i = 0; i < is_add_vars.size(); i++) {
+			var v = vars[i];
+			if (is_add_vars[i]) {
+				if (v.obj_val_add == MAX_OBJ_FUNC_VALUE)
+					v.obj_val_add = -1;
+				add_vars.push_back(v);
+			}
+			else {
+				if (v.obj_val_remove == MAX_OBJ_FUNC_VALUE)
+					v.obj_val_remove = -1;
+				remove_vars.push_back(v);
+			}
+		}
 		random_shuffle(remove_vars.begin(), remove_vars.end());
-		random_shuffle(add_vars.begin(), add_vars.end());
 		sort(remove_vars.begin(), remove_vars.end(), compareByVarRemObjVal);
-		if (add_vars.size() > 0)
+		if (add_vars.size() > 0) {
+			random_shuffle(add_vars.begin(), add_vars.end());
 			sort(add_vars.begin(), add_vars.end(), compareByVarAddObjVal);
+		}
 		if (verbosity > 0) {
 			cout << "remove_vars size " << remove_vars.size() << endl;
 			cout << "remove_vars : " << endl;
@@ -632,7 +641,7 @@ bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_cen
 	is_break = false;
 	vector<unsigned> center_uint_vec = uintVecFromPoint(neigh_center);
 	int neighbor_index = -1;
-	for (auto neighbor : neighbors_points) {	
+	for (auto neighbor : neighbors_points) {
 		neighbor_index++;
 		calculateEstimation(neighbor);
 		if (neighbor.estimation <= 0)
@@ -640,7 +649,17 @@ bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_cen
 		if (is_add_remove_vars_req) {
 			unsigned var_val = get_diff_var(neighbor, neigh_center);
 			int pos = getVarPos(var_val);
-			double dval = neighbor.estimation / global_record_point.estimation;
+			double dval = -1;
+			if (neighbor.estimation < MAX_OBJ_FUNC_VALUE)
+				dval = neighbor.estimation / global_record_point.estimation;
+			else
+				dval = MAX_OBJ_FUNC_VALUE;
+			if (verbosity > 0) {
+				cout << "var_val : " << var_val << endl;
+				cout << "pos : " << pos << endl;
+				cout << "dval : " << dval << endl;
+				cout << "is_add_vars[pos] : " << is_add_vars[pos] << endl;
+			}
 			if (is_add_vars[pos])
 				vars[pos].obj_val_add = dval;
 			else

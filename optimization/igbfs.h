@@ -10,7 +10,6 @@ const unsigned MIN_VARS_JUMP_FROM = 30;
 const unsigned ADD_VARS_CALC = 4;
 const unsigned ADD_VARS_RECORDS = 4;
 const unsigned REPLACE_VARS = 10;
-//const unsigned REM_VARS_RECORDS = 5;
 
 class igbfs : public base_local_search
 {
