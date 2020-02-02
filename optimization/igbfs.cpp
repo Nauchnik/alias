@@ -510,26 +510,40 @@ vector<point> igbfs::neighbors(point neigh_center, vector<bool> &is_add_vars, in
 			neighbors_points.push_back(x);
 	}
 	else if (neigh_type == 2) { // add/remove vars sorted by obj function's values
-		vector<var> remove_vars, add_vars;
+		vector<var> remove_vars_w_obj, remove_vars_no_obj, add_vars_w_obj, add_vars_no_obj;
 		for (unsigned i = 0; i < is_add_vars.size(); i++) {
 			var v = vars[i];
 			if (is_add_vars[i]) {
-				if (v.obj_val_add == MAX_OBJ_FUNC_VALUE)
+				if (v.obj_val_add == MAX_OBJ_FUNC_VALUE) {
 					v.obj_val_add = -1;
-				add_vars.push_back(v);
+					add_vars_no_obj.push_back(v);
+				}
+				else
+					add_vars_w_obj.push_back(v);
 			}
 			else {
-				if (v.obj_val_remove == MAX_OBJ_FUNC_VALUE)
+				if (v.obj_val_remove == MAX_OBJ_FUNC_VALUE) {
 					v.obj_val_remove = -1;
-				remove_vars.push_back(v);
+					remove_vars_no_obj.push_back(v);
+				}
+				else
+					remove_vars_w_obj.push_back(v);
 			}
 		}
-		random_shuffle(remove_vars.begin(), remove_vars.end());
-		sort(remove_vars.begin(), remove_vars.end(), compareByVarRemObjVal);
-		if (add_vars.size() > 0) {
-			random_shuffle(add_vars.begin(), add_vars.end());
-			sort(add_vars.begin(), add_vars.end(), compareByVarAddObjVal);
-		}
+		vector<var> remove_vars, add_vars;
+		random_shuffle(remove_vars_no_obj.begin(), remove_vars_no_obj.end());
+		for (auto x : remove_vars_no_obj)
+			remove_vars.push_back(x);
+		sort(remove_vars_w_obj.begin(), remove_vars_w_obj.end(), compareByVarRemObjVal);
+		for (auto x : remove_vars_w_obj)
+			remove_vars.push_back(x);
+		random_shuffle(add_vars_no_obj.begin(), add_vars_no_obj.end());
+		for (auto x : add_vars_no_obj)
+			add_vars.push_back(x);
+		sort(add_vars_w_obj.begin(), add_vars_w_obj.end(), compareByVarAddObjVal);
+		for (auto x : add_vars_w_obj)
+			add_vars.push_back(x);
+
 		if (verbosity > 0) {
 			cout << "remove_vars size " << remove_vars.size() << endl;
 			cout << "remove_vars : " << endl;
@@ -545,6 +559,15 @@ vector<point> igbfs::neighbors(point neigh_center, vector<bool> &is_add_vars, in
 			point p = neigh_center;
 			p.value[pos] = false;
 			neighbors_points.push_back(p);
+			/*if (verbosity > 0) {
+				cout << "x.value : " << x.value << endl;
+				cout << "pos : " << pos << endl;
+				cout << "neigh_center[pos] : " << neigh_center.value[pos] << endl;
+				cout << "p.value[pos] : " << p.value[pos] << endl;
+				cout << "p.value  size " << p.value.size() << endl;
+				cout << "p.value weight " << p.weight() << endl;
+				cout << "neigh_center weight " << neigh_center.weight() << endl;
+			}*/
 		}
 		if (add_vars.size() > 0) {
 			for (auto y : add_vars) {
@@ -655,9 +678,12 @@ bool igbfs::processNeighborhood(vector<point> neighbors_points, point &neigh_cen
 			else
 				dval = MAX_OBJ_FUNC_VALUE;
 			if (verbosity > 0) {
+				cout << "neighbor.weight : " << neighbor.weight() << endl;
+				cout << "neighbor.estimation : " << neighbor.estimation << endl;
+				cout << "global_record_point.estimation : " << global_record_point.estimation << endl;
+				cout << "dval : " << dval << endl;
 				cout << "var_val : " << var_val << endl;
 				cout << "pos : " << pos << endl;
-				cout << "dval : " << dval << endl;
 				cout << "is_add_vars[pos] : " << is_add_vars[pos] << endl;
 			}
 			if (is_add_vars[pos])
