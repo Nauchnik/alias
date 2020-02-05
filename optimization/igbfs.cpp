@@ -992,7 +992,7 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 					inter_remove_var++;
 			}
 		
-		if ((is_add_var_inter) || (inter_remove_var == remove_vars.size())) {
+		/*if ((is_add_var_inter) || (inter_remove_var == remove_vars.size())) {
 			cout << "*** for all remove vars (or for at least one add var) the obj func was interrupted" << endl;
 			cout << "is_add_var_inter : " << is_add_var_inter << endl;
 			cout << "inter_remove_var : " << inter_remove_var << endl;
@@ -1004,7 +1004,7 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 			sstream << time_limit_per_task;
 			writeToGraphFile("--- time_limit_per_task : " + sstream.str());
 			clearInterruptedChecked();
-		}
+		}*/
 		
 		// remove vars with interrupted objective function first
 		for (auto &var : remove_vars)
@@ -1012,6 +1012,7 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 				var.obj_val_remove = -1;
 		// sort remove vars by estimation
 		sort(remove_vars.begin(), remove_vars.end(), compareByVarRemObjVal);
+		vector<var> sorted_remove_vars_before_erasing = remove_vars;
 		cout << endl << "sorted remove vars (interrupted first) : " << endl;
 		for (auto v : remove_vars)
 			cout << v.value << " " << " " << v.obj_val_remove << endl;
@@ -1019,6 +1020,7 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		remove_vars.resize(REPLACE_VARS);
 		// sort add vars by estimation
 		sort(add_vars.begin(), add_vars.end(), compareByVarAddObjVal);
+		vector<var> sorted_add_vars_before_erasing = add_vars;
 		cout << endl << "sorted add vars : " << endl;
 		for (auto v : add_vars)
 			cout << v.value << " " << " " << v.obj_val_add << endl;
@@ -1037,6 +1039,7 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		for (auto v : add_vars)
 			cout << v.value << " " << " " << v.obj_val_add << endl;
 
+		// add REPLACE_VARS * REPLACE_VARS the most proper points at first
 		neighbors_points.clear();
 		if (add_vars.size() > 0) {
 			for (auto x : remove_vars) {
@@ -1055,6 +1058,21 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 				coutUintVec(uvec);
 			}
 		}
+		// then add all remaining points
+		for (auto x : sorted_remove_vars_before_erasing) {
+			int pos1 = getVarPos(x.value);
+			for (auto y : sorted_add_vars_before_erasing) {
+				int pos2 = getVarPos(y.value);
+				point p = neigh_center;
+				p.value[pos1] = false;
+				p.value[pos2] = true;
+				if (find(neighbors_points.begin(), neighbors_points.end(), p) == neighbors_points.end())
+					neighbors_points.push_back(p);
+			}
+		}
+		cout << sorted_remove_vars_before_erasing.size() << " remove vars in total" << endl;
+		cout << sorted_add_vars_before_erasing.size() << " add vars in total" << endl;
+		cout << "neighbors_points size : " << neighbors_points.size() << endl;
 		
 		// process reduced replace neighborhood
 		is_local_record_updated = false;
