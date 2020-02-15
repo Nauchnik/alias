@@ -1007,11 +1007,25 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 		}*/
 		
 		// remove vars with interrupted objective function first
-		for (auto &var : remove_vars)
-			if (var.obj_val_remove >= MAX_OBJ_FUNC_VALUE)
+		vector<var> remove_vars_w_obj_f_val, remove_vars_no_obj_f_val;
+		for (auto &var : remove_vars) {
+			if (var.obj_val_remove >= MAX_OBJ_FUNC_VALUE) {
 				var.obj_val_remove = -1;
+				remove_vars_no_obj_f_val.push_back(var);
+			}
+			else
+				remove_vars_w_obj_f_val.push_back(var);
+		}
 		// sort remove vars by estimation
-		sort(remove_vars.begin(), remove_vars.end(), compareByVarRemObjVal);
+		if (remove_vars_w_obj_f_val.size() > 0)
+			sort(remove_vars_w_obj_f_val.begin(), remove_vars_w_obj_f_val.end(), compareByVarRemObjVal);
+		if (remove_vars_no_obj_f_val.size() > 0)
+			random_shuffle(remove_vars_no_obj_f_val.begin(), remove_vars_no_obj_f_val.end());
+		remove_vars.clear();
+		for (auto v : remove_vars_no_obj_f_val)
+			remove_vars.push_back(v);
+		for (auto v : remove_vars_w_obj_f_val)
+			remove_vars.push_back(v);
 		vector<var> sorted_remove_vars_before_erasing = remove_vars;
 		cout << endl << "sorted remove vars (interrupted first) : " << endl;
 		for (auto v : remove_vars)
@@ -1052,13 +1066,14 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 					neighbors_points.push_back(p);
 				}
 			}
-			cout << "first " << REPLACE_VARS + 1 << "neighbors : " << endl;
-			for (unsigned j = 0; j < REPLACE_VARS + 1; j++) {
+			cout << "first " << REPLACE_VARS+1 << " neighbors : " << endl;
+			for (unsigned j = 0; j < REPLACE_VARS+1; j++) {
 				vector<unsigned> uvec = uintVecFromPoint(neighbors_points[j]);
 				coutUintVec(uvec);
 			}
 		}
 		// then add all remaining points
+		vector<point> vec_p;
 		for (auto x : sorted_remove_vars_before_erasing) {
 			int pos1 = getVarPos(x.value);
 			for (auto y : sorted_add_vars_before_erasing) {
@@ -1066,13 +1081,19 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 				point p = neigh_center;
 				p.value[pos1] = false;
 				p.value[pos2] = true;
-				if (find(neighbors_points.begin(), neighbors_points.end(), p) == neighbors_points.end())
-					neighbors_points.push_back(p);
+				vec_p.push_back(p);
 			}
 		}
 		cout << sorted_remove_vars_before_erasing.size() << " remove vars in total" << endl;
 		cout << sorted_add_vars_before_erasing.size() << " add vars in total" << endl;
-		cout << "neighbors_points size : " << neighbors_points.size() << endl;
+		cout << vec_p.size() << " additional randomly shuffled points" << endl;
+		cout << "neighbors_points size before additional : " << neighbors_points.size() << endl;
+		random_shuffle(vec_p.begin(), vec_p.end()); // randomly shuffle additional points before adding
+		for (auto p : vec_p) {
+			if (find(neighbors_points.begin(), neighbors_points.end(), p) == neighbors_points.end())
+				neighbors_points.push_back(p);
+		}
+		cout << "neighbors_points size after additional : " << neighbors_points.size() << endl;
 		
 		// process reduced replace neighborhood
 		is_local_record_updated = false;
