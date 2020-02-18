@@ -1113,6 +1113,6 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 
 void igbfs::onePlusOneSimpleHillClimbing()
 {
-	onePlusOne(200, 1800); // max x function calculations or y seconds without updates of global min
+	onePlusOne(1000000, 43200); // max x function calculations or y seconds without updates of global min
 	simpleHillClimbingAddRemovePartialRaplace(global_record_point);
 }
