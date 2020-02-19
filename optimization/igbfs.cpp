@@ -867,7 +867,7 @@ void igbfs::tabuSearch()
 	}
 }
 
-void igbfs::onePlusOne(int fcalc_lim, double time_lim)
+void igbfs::onePlusOne(int fcalc_lim, double time_from_last_update, double time_lim)
 {
 	cout << "one_plus_one()\n";
 	is_jump_mode = false;
@@ -886,6 +886,7 @@ void igbfs::onePlusOne(int fcalc_lim, double time_lim)
 	uniform_real_distribution<double> dist(0, 1);
 	double prob = 1 / (double)total_var_count;
 	chrono::high_resolution_clock::time_point update_start_t = chrono::high_resolution_clock::now();
+	chrono::high_resolution_clock::time_point start_t = chrono::high_resolution_clock::now();
 	int update_fcalc = -1;
 
 	for (;;) {
@@ -913,10 +914,15 @@ void igbfs::onePlusOne(int fcalc_lim, double time_lim)
 			break;
 		}
 		chrono::high_resolution_clock::time_point cur_t = chrono::high_resolution_clock::now();
-		chrono::duration<double> time_span = chrono::duration_cast<chrono::duration<double>>(cur_t - update_start_t);
+		chrono::duration<double> elapsed_from_last_update = chrono::duration_cast<chrono::duration<double>>(cur_t - update_start_t);
+		chrono::duration<double> elapsed_from_start = chrono::duration_cast<chrono::duration<double>>(cur_t - start_t);
 		if ( (update_fcalc > 0) && 
-		     ( ((fcalc_lim > 0) && (total_func_calculations - update_fcalc >= fcalc_lim)) ||
-			 (time_lim > 0) && (time_span.count() >= time_lim) ) )
+		     ( 
+			 ((fcalc_lim > 0) && (total_func_calculations - update_fcalc >= fcalc_lim)) ||
+			 ((time_from_last_update > 0) && (elapsed_from_last_update.count() >= time_from_last_update)) ||
+			 ((time_lim > 0) && (elapsed_from_start.count() >= time_lim)) 
+		     ) 
+		   )
 		{
 			writeToGraphFile("--- interrupt (1+1)-EA due to limit");
 			stringstream sstream;
@@ -1113,6 +1119,7 @@ void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 
 void igbfs::onePlusOneSimpleHillClimbing()
 {
-	onePlusOne(1000000, 43200); // max x function calculations or y seconds without updates of global min
+	// max x function calculations or y seconds without updates of global min, or max total seconds
+	onePlusOne(1000000, 1000000, 43200); 
 	simpleHillClimbingAddRemovePartialRaplace(global_record_point);
 }

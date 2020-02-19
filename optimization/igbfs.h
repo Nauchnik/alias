@@ -31,7 +31,7 @@ public:
 	void steepestAscentHillClimbing();
 	void tabuSearch();
 	void iteratedHCVJ(); // iterated hill climbing with variables-based jump
-	void onePlusOne(int fcalc_lim = -1, double time_lim = -1);
+	void onePlusOne(int fcalc_lim = -1, double time_from_last_update = -1, double time_lim = -1);
 	void onePlusOneSimpleHillClimbing();
 	int findBackdoor();
 	point generateRandPoint(const unsigned point_var_count);
