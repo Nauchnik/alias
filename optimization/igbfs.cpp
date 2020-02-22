@@ -293,6 +293,9 @@ int igbfs::findBackdoor()
 	case 9:
 		simpleHillClimbing(1); // neighborhood = add/remove/replace
 		break;
+	case 10:
+		onePlusOneNoMemory();
+		break;
 	default:
 		cout << "Unknown opt_alg, 1+1 was chosen\n";
 		onePlusOne();
@@ -884,7 +887,7 @@ void igbfs::onePlusOne(int fcalc_lim, double time_from_last_update, double time_
 
 	mt19937 mt(time(0));
 	uniform_real_distribution<double> dist(0, 1);
-	double prob = 1 / (double)total_var_count;
+	double prob = (double)1 / (double)total_var_count;
 	chrono::high_resolution_clock::time_point update_start_t = chrono::high_resolution_clock::now();
 	chrono::high_resolution_clock::time_point start_t = chrono::high_resolution_clock::now();
 	int update_fcalc = -1;
@@ -934,6 +937,49 @@ void igbfs::onePlusOne(int fcalc_lim, double time_from_last_update, double time_
 		}
 	}
 }
+
+void igbfs::onePlusOneNoMemory()
+{
+	cout << "one_plus_one()\n";
+	is_jump_mode = false;
+	is_random_search = true;
+
+	// first, calculate on a start point - all variables
+	point neigh_center;
+	size_t total_var_count = vars.size();
+	neigh_center.value.resize(total_var_count);
+	for (auto x : neigh_center.value)
+		x = true;
+	calculateEstimation(neigh_center, false);
+	updateLocalRecord(neigh_center);
+
+	mt19937 mt(time(0));
+	uniform_real_distribution<double> dist(0, 1);
+	double prob = (double)1 / (double)total_var_count;
+
+	for (;;) {
+		point candidate_point = neigh_center;
+		for (unsigned i = 0; i < total_var_count; i++) {
+			double val = dist(mt);
+			if (val < prob)
+				candidate_point.value[i] = (candidate_point.value[i] == true) ? false : true;
+		}
+		calculateEstimation(candidate_point, false); // don't use memory
+		if (candidate_point.estimation <= 0)
+			continue;
+		if (candidate_point.estimation < global_record_point.estimation) {
+			updateLocalRecord(candidate_point);
+			neigh_center = candidate_point;
+		}
+
+		if (isTimeExceeded() || isEstTooLong()) {
+			cout << "*** interrupt the search" << endl;
+			writeToGraphFile("--- interrupt");
+			break;
+		}
+	}
+}
+
 
 void igbfs::simpleHillClimbingAddRemovePartialRaplace(point p)
 {

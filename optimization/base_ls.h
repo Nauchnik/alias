@@ -56,7 +56,7 @@ public:
 	void setGraphFileName();
 	bool solveInstance();
 	void reportResult();
-	void calculateEstimation(point &cur_point);
+	void calculateEstimation(point &cur_point, bool use_memory = true);
 	bool isChecked(point p);
 	void clearInterruptedChecked();
 	string getScriptCommand(const int mode, const point cur_point);

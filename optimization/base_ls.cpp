@@ -428,42 +428,46 @@ void base_local_search::clearInterruptedChecked()
 	cout << checked_points.size() << " points after\n";
 }
 
-void base_local_search::calculateEstimation(point &cur_point)
+void base_local_search::calculateEstimation(point &cur_point, bool use_memory)
 {
 	string str = "";
-	for (auto x : cur_point.value)
-		str += x == true ? '1' : '0';
-	if (isChecked(cur_point)) {
-		unordered_map<string, double>::iterator it;
-		it = checked_points.find(str);
-		cur_point.estimation = it->second;
-		total_skipped_func_calculations++;
+	if (use_memory) {
+		// don't use isChecked since an iterator is required here
+		for (auto x : cur_point.value)
+			str += x == true ? '1' : '0';
+		unordered_map<string, double>::iterator it = checked_points.find(str);
+		if (it != checked_points.end()) {
+			cur_point.estimation = it->second;
+			total_skipped_func_calculations++;
+			return;
+		}
 	}
-	else {
-		string command_str = getScriptCommand(ESTIMATE, cur_point);
-		if (verbosity > 1)
-			cout << "command_str " << command_str << endl;
+	
+	// calculate function's value
+	string command_str = getScriptCommand(ESTIMATE, cur_point);
+	if (verbosity > 1)
+		cout << "command_str " << command_str << endl;
 
-		string out_str = getCmdOutput(command_str.c_str());
-		string bef_str = "SUCCESS, 0, 0, ";
-		size_t pos1 = out_str.find(bef_str);
-		if (pos1 != string::npos) {
-			size_t pos2 = pos1 + bef_str.size();
-			out_str = out_str.substr(pos2, out_str.size() - pos2);
-			if (verbosity > 1)
-				cout << "output : " << out_str << endl;
-			stringstream sstream;
-			sstream << out_str;
-			sstream >> cur_point.estimation;
-		}
-		checked_points.insert(pair<string, double>(str, cur_point.estimation));
-		if ((!is_jump_mode) && (!is_random_search)) {
-			for (unsigned j = 0; j < cur_point.value.size(); j++)
-				if (cur_point.value[j])
-					vars[j].calculations++;
-		}
-		total_func_calculations++;
+	string out_str = getCmdOutput(command_str.c_str());
+	string bef_str = "SUCCESS, 0, 0, ";
+	size_t pos1 = out_str.find(bef_str);
+	if (pos1 != string::npos) {
+		size_t pos2 = pos1 + bef_str.size();
+		out_str = out_str.substr(pos2, out_str.size() - pos2);
+		if (verbosity > 1)
+			cout << "output : " << out_str << endl;
+		stringstream sstream;
+		sstream << out_str;
+		sstream >> cur_point.estimation;
 	}
+	if (use_memory)
+		checked_points.insert(pair<string, double>(str, cur_point.estimation));
+	if ((!is_jump_mode) && (!is_random_search)) {
+		for (unsigned j = 0; j < cur_point.value.size(); j++)
+			if (cur_point.value[j])
+				vars[j].calculations++;
+	}
+	total_func_calculations++;
 }
 
 bool base_local_search::isChecked(point p)
