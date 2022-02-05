@@ -520,7 +520,7 @@ bool base_local_search::solveInstance()
 string base_local_search::getScriptCommand(const int mode, const point cur_point)
 {
 	stringstream sstream;
-	string command_str = "python3.6 " + alias_script_name;
+	string command_str = "python3 " + alias_script_name;
 	if (mode == SOLVE) {
 		sstream << wall_time_solving;
 		command_str += " -s -wtlimitsolve " + sstream.str();
